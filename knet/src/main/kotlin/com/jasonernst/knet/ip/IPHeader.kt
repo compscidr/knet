@@ -8,7 +8,6 @@ import java.net.Inet6Address
 import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import kotlin.reflect.typeOf
 
 /**
  * Collects up the common things between IPv4 and IPv6 headers.
@@ -47,17 +46,32 @@ interface IPHeader {
          * Creates an IP header with no extension headers / options with the given payload size,
          * protocol and source and destination addresses.
          */
-        fun createIPHeader(sourceAddress: InetAddress, destinationAddress: InetAddress, protocol: IPType, payloadSize: Int): IPHeader {
+        fun createIPHeader(
+            sourceAddress: InetAddress,
+            destinationAddress: InetAddress,
+            protocol: IPType,
+            payloadSize: Int,
+        ): IPHeader {
             require(sourceAddress.javaClass == destinationAddress.javaClass) {
                 "Source ${sourceAddress::javaClass} and destination  ${destinationAddress::javaClass} addresses must be of the same type"
             }
             return when (sourceAddress) {
                 is Inet4Address -> {
                     val totalLength = (IP4_MIN_HEADER_LENGTH + payloadSize.toUShort()).toUShort()
-                    IPv4Header(sourceAddress = sourceAddress, destinationAddress = destinationAddress, protocol = protocol.value, totalLength = totalLength)
+                    IPv4Header(
+                        sourceAddress = sourceAddress,
+                        destinationAddress = destinationAddress,
+                        protocol = protocol.value,
+                        totalLength = totalLength,
+                    )
                 }
                 is Inet6Address -> {
-                    IPv6Header(sourceAddress = sourceAddress, destinationAddress = destinationAddress, protocol = protocol.value, payloadLength = payloadSize.toUShort())
+                    IPv6Header(
+                        sourceAddress = sourceAddress,
+                        destinationAddress = destinationAddress,
+                        protocol = protocol.value,
+                        payloadLength = payloadSize.toUShort(),
+                    )
                 }
                 else -> {
                     throw IllegalArgumentException("Unknown address type: ${sourceAddress.javaClass.name}")

@@ -11,7 +11,11 @@ import java.nio.ByteOrder
  * only a single next header if we have an IPv4 packet, but could be more if we have an IPv6 packet
  * with hop-by-hop options, for example).
  */
-data class Packet(val ipHeader: IPHeader, val nextHeaders: NextHeader, val payload: ByteArray) {
+data class Packet(
+    val ipHeader: IPHeader,
+    val nextHeaders: NextHeader,
+    val payload: ByteArray,
+) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     companion object {

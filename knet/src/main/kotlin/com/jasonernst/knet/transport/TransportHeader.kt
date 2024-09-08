@@ -21,7 +21,10 @@ interface TransportHeader : NextHeader {
     /**
      * Verify that the checksum is correct
      */
-    fun verifyChecksum(sourceAddress: InetAddress, destinationAddress: InetAddress): Boolean {
+    fun verifyChecksum(
+        sourceAddress: InetAddress,
+        destinationAddress: InetAddress,
+    ): Boolean {
         TODO()
     }
 }

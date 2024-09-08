@@ -29,7 +29,7 @@ data class IPv6Header(
     // 128-bits: destination address
     override val destinationAddress: InetAddress,
     val extensionHeaders: List<IPv6ExtensionHeader> = emptyList(),
-): IPHeader {
+) : IPHeader {
     companion object {
         private val logger = LoggerFactory.getLogger(IPv6Header::class.java)
         private const val IP6_HEADER_SIZE: UShort = 40u // ipv6 header is not variable like ipv4
@@ -115,21 +115,14 @@ data class IPv6Header(
         return buffer.array()
     }
 
-    override fun getHeaderLength(): UShort {
-        return (IP6_HEADER_SIZE + (extensionHeaders.sumOf { it.length.toInt() }).toUShort()).toUShort()
-    }
+    override fun getHeaderLength(): UShort = (IP6_HEADER_SIZE + (extensionHeaders.sumOf { it.length.toInt() }).toUShort()).toUShort()
 
-    override fun getTotalLength(): UShort {
-        return (getHeaderLength() + payloadLength).toUShort()
-    }
+    override fun getTotalLength(): UShort = (getHeaderLength() + payloadLength).toUShort()
 
-    override fun getPayloadLength(): UShort {
-        return payloadLength
-    }
+    override fun getPayloadLength(): UShort = payloadLength
 
-    override fun toString(): String {
-        return "IPv6Header(version=$version, trafficClass=$trafficClass, flowLabel=$flowLabel, " +
-                "payloadLength=$payloadLength, protocol=$protocol, hopLimit=$hopLimit, " +
-                "sourceAddress=$sourceAddress, destinationAddress=$destinationAddress)"
-    }
+    override fun toString(): String =
+        "IPv6Header(version=$version, trafficClass=$trafficClass, flowLabel=$flowLabel, " +
+            "payloadLength=$payloadLength, protocol=$protocol, hopLimit=$hopLimit, " +
+            "sourceAddress=$sourceAddress, destinationAddress=$destinationAddress)"
 }

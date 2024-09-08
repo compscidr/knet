@@ -8,7 +8,11 @@ import java.nio.ByteOrder
  * The length is measured in 8-octet units, not including the first 8 octets:
  * https://www.rfc-editor.org/rfc/rfc8200#page-13
  */
-class IPv6HopByHopOption(nextHeader: UByte, length: UByte, data: ByteArray): IPv6ExtensionHeader(nextHeader, length, data) {
+class IPv6HopByHopOption(
+    nextHeader: UByte,
+    length: UByte,
+    data: ByteArray,
+) : IPv6ExtensionHeader(nextHeader, length, data) {
     companion object {
         private val logger = org.slf4j.LoggerFactory.getLogger(IPv6HopByHopOption::class.java)
         const val MIN_HEADER_LENGTH = 8u
@@ -47,9 +51,7 @@ class IPv6HopByHopOption(nextHeader: UByte, length: UByte, data: ByteArray): IPv
         }
     }
 
-    fun getTotalLength(): UByte {
-        return (MIN_HEADER_LENGTH + (8u * length)).toUByte()
-    }
+    fun getTotalLength(): UByte = (MIN_HEADER_LENGTH + (8u * length)).toUByte()
 
     override fun toByteArray(order: ByteOrder): ByteArray {
         val buffer = ByteBuffer.allocate(MIN_HEADER_LENGTH.toInt() + (8 * length.toInt()))
