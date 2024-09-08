@@ -21,8 +21,7 @@ class IPv4HeaderTest {
     private val stringPacketDumper = StringPacketDumper()
 
     private fun byteArrayOfInts(vararg ints: Int) =
-        ByteArray(ints.size) {
-                pos ->
+        ByteArray(ints.size) { pos ->
             ints[pos].toByte()
         }
 
@@ -138,7 +137,7 @@ class IPv4HeaderTest {
                 lastFragment = false,
                 fragmentOffset = 0u,
                 ttl = 64u,
-                protocol =0u,
+                protocol = 0u,
                 headerChecksum = 0u,
                 sourceAddress = source,
                 destinationAddress = destination,
@@ -168,7 +167,7 @@ class IPv4HeaderTest {
                 lastFragment = false,
                 fragmentOffset = 8191u,
                 ttl = 64u,
-                protocol =0u,
+                protocol = 0u,
                 headerChecksum = 0u,
                 sourceAddress = source,
                 destinationAddress = destination,
@@ -197,7 +196,7 @@ class IPv4HeaderTest {
                 lastFragment = false,
                 fragmentOffset = 8191u,
                 ttl = 64u,
-                protocol =0u,
+                protocol = 0u,
                 headerChecksum = 0u,
                 sourceAddress = source,
                 destinationAddress = destination,
