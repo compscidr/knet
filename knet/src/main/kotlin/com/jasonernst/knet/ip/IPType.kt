@@ -5,7 +5,9 @@ package com.jasonernst.knet.ip
  *
  * https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
  */
-enum class IPType(val value: UByte) {
+enum class IPType(
+    val value: UByte,
+) {
     HOPOPT(0u),
     ICMP(1u),
     IGMP(2u),

@@ -15,8 +15,11 @@ import java.nio.ByteOrder
  */
 interface NextHeader {
     companion object {
-        fun fromStream(stream: ByteBuffer, protocol: UByte): NextHeader {
-            return when (protocol) {
+        fun fromStream(
+            stream: ByteBuffer,
+            protocol: UByte,
+        ): NextHeader =
+            when (protocol) {
                 IPType.TCP.value -> {
                     TCPHeader.fromStream(stream)
                 }
@@ -29,7 +32,6 @@ interface NextHeader {
                     throw IllegalArgumentException("Unsupported protocol: $protocol")
                 }
             }
-        }
     }
 
     // return the length of the header, in bytes (not including any payload it might have)

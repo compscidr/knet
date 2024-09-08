@@ -1,3 +1,5 @@
 package com.jasonernst.knet
 
-class PacketTooShortException(message: String): Exception(message)
+class PacketTooShortException(
+    message: String,
+) : Exception(message)

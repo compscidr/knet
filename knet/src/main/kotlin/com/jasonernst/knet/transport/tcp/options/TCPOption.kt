@@ -4,7 +4,10 @@ import com.jasonernst.knet.PacketTooShortException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-abstract class TCPOption(val type: TCPOptionTypeSupported, val size: UByte) {
+abstract class TCPOption(
+    val type: TCPOptionTypeSupported,
+    val size: UByte,
+) {
     companion object {
         const val BASE_OPTION_SIZE = 2
 
@@ -40,7 +43,7 @@ abstract class TCPOption(val type: TCPOptionTypeSupported, val size: UByte) {
                     if (stream.remaining() < 3) {
                         throw PacketTooShortException(
                             "Expecting: 3 bytes, have: ${stream.remaining()} " +
-                                    "not enough bytes to parse TCP MSS option",
+                                "not enough bytes to parse TCP MSS option",
                         )
                     }
                     // logger.debug("Maximum segment size")
@@ -53,7 +56,7 @@ abstract class TCPOption(val type: TCPOptionTypeSupported, val size: UByte) {
                     if (stream.remaining() < 9) {
                         throw PacketTooShortException(
                             "Expecting: 9 bytes, have: ${stream.remaining()} " +
-                                    "not enough bytes to parse TCP timestamp option",
+                                "not enough bytes to parse TCP timestamp option",
                         )
                     }
                     // skip over the length
@@ -81,7 +84,7 @@ abstract class TCPOption(val type: TCPOptionTypeSupported, val size: UByte) {
                     if (stream.remaining() < 1) {
                         throw PacketTooShortException(
                             "Expecting: 1 byte, have: ${stream.remaining()} not enough bytes to parse" +
-                                    " length of unsupported TCP option",
+                                " length of unsupported TCP option",
                         )
                     }
                     // unsupported option
@@ -89,7 +92,7 @@ abstract class TCPOption(val type: TCPOptionTypeSupported, val size: UByte) {
                     if (length - 2 > stream.remaining()) {
                         throw PacketTooShortException(
                             "Expecting: $length bytes, have: ${stream.remaining()} not enough bytes " +
-                                    "to parse TCP option",
+                                "to parse TCP option",
                         )
                     }
                     val data = ByteArray(length - 2)

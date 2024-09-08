@@ -5,7 +5,5 @@ package com.jasonernst.knet.transport.tcp.options
  * Otherwise we'll need to implement equals and hashCode.
  */
 object TCPOptionEndOfOptionList : TCPOption(type = TCPOptionTypeSupported.EndOfOptionList, size = 0x01u) {
-    override fun toString(): String {
-        return "TCPOptionEndOfOptionList(kind=${type.kind} size=$size)"
-    }
+    override fun toString(): String = "TCPOptionEndOfOptionList(kind=${type.kind} size=$size)"
 }

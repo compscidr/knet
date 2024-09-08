@@ -48,7 +48,6 @@ data class IPv4Header(
     // 32-bits, destination address
     override val destinationAddress: InetAddress = Inet4Address.getLocalHost(),
 ) : IPHeader {
-
     // 3-bits: set from mayFragment and lastFragment
     // bit 0: Reserved; must be zero
     // bit 1: Don't Fragment (DF)
@@ -106,7 +105,9 @@ data class IPv4Header(
             val ihl: UByte = (versionAndHeaderLength.toInt() and 0x0F).toUByte()
             val headerAvailable = stream.limit() - start
             if (headerAvailable < (ihl * 4u).toInt()) {
-                throw PacketTooShortException("Not enough space in stream for IPv4 header, expected ${ihl * 4u} but only have $headerAvailable")
+                throw PacketTooShortException(
+                    "Not enough space in stream for IPv4 header, expected ${ihl * 4u} but only have $headerAvailable",
+                )
             }
 
             val dscpAndEcn = stream.get().toUByte()
@@ -185,32 +186,25 @@ data class IPv4Header(
         return buffer.array()
     }
 
-    override fun getHeaderLength(): UShort {
-        return (ihl * IP4_WORD_LENGTH).toUShort()
-    }
+    override fun getHeaderLength(): UShort = (ihl * IP4_WORD_LENGTH).toUShort()
 
-    override fun getTotalLength(): UShort {
-        return totalLength
-    }
+    override fun getTotalLength(): UShort = totalLength
 
-    override fun getPayloadLength(): UShort {
-        return (totalLength - getHeaderLength()).toUShort()
-    }
+    override fun getPayloadLength(): UShort = (totalLength - getHeaderLength()).toUShort()
 
-    override fun toString(): String {
-        return "IPv4Header(" +
-                "version=$version" +
-                ", ihl=$ihl" +
-                ", dscp=$dscp" +
-                ", ecn=$ecn" +
-                ", totalLength=${Integer.toUnsignedString(totalLength.toInt())}" +
-                ", id=${Integer.toUnsignedString(id.toInt())}" +
-                ", dontFragment=$dontFragment" +
-                ", lastFragment=$lastFragment" +
-                ", fragmentOffset=$fragmentOffset" +
-                ", ttl=$ttl" +
-                ", protocol=$protocol" +
-                ", headerChecksum=${Integer.toUnsignedString(headerChecksum.toInt())}" +
-                ", sourceAddress=$sourceAddress, destinationAddress=$destinationAddress, flag=$flag)"
-    }
+    override fun toString(): String =
+        "IPv4Header(" +
+            "version=$version" +
+            ", ihl=$ihl" +
+            ", dscp=$dscp" +
+            ", ecn=$ecn" +
+            ", totalLength=${Integer.toUnsignedString(totalLength.toInt())}" +
+            ", id=${Integer.toUnsignedString(id.toInt())}" +
+            ", dontFragment=$dontFragment" +
+            ", lastFragment=$lastFragment" +
+            ", fragmentOffset=$fragmentOffset" +
+            ", ttl=$ttl" +
+            ", protocol=$protocol" +
+            ", headerChecksum=${Integer.toUnsignedString(headerChecksum.toInt())}" +
+            ", sourceAddress=$sourceAddress, destinationAddress=$destinationAddress, flag=$flag)"
 }

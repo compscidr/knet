@@ -3,10 +3,13 @@ package com.jasonernst.knet.transport.tcp.options
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class TCPOptionUnsupported(val kind: UByte, val data: ByteArray) : TCPOption(
-    type = TCPOptionTypeSupported.fromKind(kind),
-    size = (BASE_OPTION_SIZE + data.size).toUByte(),
-) {
+class TCPOptionUnsupported(
+    val kind: UByte,
+    val data: ByteArray,
+) : TCPOption(
+        type = TCPOptionTypeSupported.fromKind(kind),
+        size = (BASE_OPTION_SIZE + data.size).toUByte(),
+    ) {
     override fun toByteArray(order: ByteOrder): ByteArray {
         val buffer = ByteBuffer.allocate(size.toInt())
         buffer.put(super.toByteArray(order))

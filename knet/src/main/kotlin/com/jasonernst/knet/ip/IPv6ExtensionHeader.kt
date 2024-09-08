@@ -9,6 +9,10 @@ import java.nio.ByteOrder
  * https://www.rfc-editor.org/rfc/rfc6564#page-4
  * https://www.rfc-editor.org/rfc/rfc7045.html
  */
-abstract class IPv6ExtensionHeader(val nextHeader: UByte, val length: UByte, val data: ByteArray) {
+abstract class IPv6ExtensionHeader(
+    val nextHeader: UByte,
+    val length: UByte,
+    val data: ByteArray,
+) {
     abstract fun toByteArray(order: ByteOrder = ByteOrder.BIG_ENDIAN): ByteArray
 }
