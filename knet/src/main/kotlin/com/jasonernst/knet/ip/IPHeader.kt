@@ -74,6 +74,10 @@ interface IPHeader {
                     )
                 }
                 else -> {
+                    // we should never get here because there are only the above two classes
+                    // however linting forces us to make this exhaustive. Its not easily
+                    // possible to test this branch because we can't even make a dummy class
+                    // that extends InetAddress to do so.
                     throw IllegalArgumentException("Unknown address type: ${sourceAddress.javaClass.name}")
                 }
             }
