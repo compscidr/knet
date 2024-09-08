@@ -1,4 +1,4 @@
-name: Bump Library Tests
+name: JVM Tests
 
 on:
   pull_request:
