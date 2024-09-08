@@ -1,6 +1,7 @@
 package com.jasonernst.knet.ip
 
 import com.jasonernst.icmp_common.Checksum
+import com.jasonernst.knet.PacketTooShortException
 import com.jasonernst.knet.ip.IPHeader.Companion.IP4_VERSION
 import com.jasonernst.knet.ip.IPv4Header.Companion.IP4_MIN_HEADER_LENGTH
 import com.jasonernst.knet.ip.IPv4Header.Companion.IP4_WORD_LENGTH
@@ -9,6 +10,7 @@ import com.jasonernst.knet.transport.tcp.options.TCPOptionEndOfOptionList
 import com.jasonernst.packetdumper.stringdumper.StringPacketDumper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
 import java.nio.ByteBuffer
@@ -273,5 +275,43 @@ class IPv4HeaderTest {
         assertEquals(tcpHeader, parsedTcpHeader)
         assertEquals(ipHeader2, parsedIpHeader2)
         assertEquals(tcpHeader2, parsedTCPHeader2)
+    }
+
+    @Test
+    fun tooShortPacketTest() {
+        val buffer = ByteBuffer.allocate(0)
+        assertThrows<PacketTooShortException> {
+            IPv4Header.fromStream(buffer)
+        }
+    }
+
+    @Test
+    fun badIPVersion() {
+        val buffer = ByteBuffer.allocate(1)
+        buffer.put(0x00)
+        buffer.rewind()
+        assertThrows<IllegalArgumentException> {
+            IPv4Header.fromStream(buffer)
+        }
+    }
+
+    @Test fun tooShortForFullHeader() {
+        val buffer = ByteBuffer.allocate(2)
+        buffer.put(0x45)
+        buffer.put(0x00)
+        buffer.rewind()
+        assertThrows<PacketTooShortException> {
+            IPv4Header.fromStream(buffer)
+        }
+    }
+
+    // this is only a temp test until we properly implement ipv4 options
+    @Test fun testOptionDropping() {
+        val ipv4Packet = IPv4Header(ihl = 6u)
+        logger.debug("IPv4 packet: {}", ipv4Packet)
+        val buffer = ByteBuffer.wrap(ipv4Packet.toByteArray())
+        val parsedPacket = IPHeader.fromStream(buffer)
+        assertEquals(0u, buffer.remaining().toUInt())
+        assertEquals(ipv4Packet, parsedPacket)
     }
 }

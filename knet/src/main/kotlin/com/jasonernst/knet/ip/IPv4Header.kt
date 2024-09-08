@@ -96,11 +96,6 @@ data class IPv4Header(
                 throw IllegalArgumentException("Invalid IPv4 header. IP version should be 4 but was $ipVersion")
             }
 
-            // ensure we have enough to to get IHL
-            if (stream.remaining() < 1) {
-                throw IllegalArgumentException("IPv4Header: stream too short to determine header length")
-            }
-
             // ensure we have enough capacity in the stream to parse out a full header
             val ihl: UByte = (versionAndHeaderLength.toInt() and 0x0F).toUByte()
             val headerAvailable = stream.limit() - start
@@ -131,12 +126,12 @@ data class IPv4Header(
             val destinationAddress = Inet4Address.getByAddress(destination) as Inet4Address
 
             // todo (compscidr): parse the options field instead of just dropping them
+            logger.debug("POS: ${stream.position()}, remaining: ${stream.remaining()}")
             if (ihl > 5u) {
-                // drop the IP option
-                for (i in 0u until (ihl - 5u)) {
-                    stream.int
-                }
+                logger.debug("Dropping IP options")
+                stream.position(stream.position() + ((ihl - 5u) * 4u).toInt())
             }
+            logger.debug("POS: ${stream.position()}, remaining: ${stream.remaining()}")
 
             return IPv4Header(
                 ihl = ihl,
@@ -157,6 +152,8 @@ data class IPv4Header(
     }
 
     override fun toByteArray(order: ByteOrder): ByteArray {
+        // note: this will reserve the space that was previously setup for options
+        // but they will be all zero'd out, not sure the impact of this
         val buffer = ByteBuffer.allocate((ihl * IP4_WORD_LENGTH).toInt())
         buffer.order(order)
 
