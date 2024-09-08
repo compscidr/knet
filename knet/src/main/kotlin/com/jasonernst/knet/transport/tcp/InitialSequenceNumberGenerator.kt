@@ -113,11 +113,11 @@ object InitialSequenceNumberGenerator {
         remoteIp: String,
         remotePort: Int,
     ): UInt {
-        val M = (System.currentTimeMillis() - initialTime) * 250 // 4 microseconds = 1/250 milliseconds
-        val F = localIp + localPort + remoteIp + remotePort + secretKey
+        val m = (System.currentTimeMillis() - initialTime) * 250 // 4 microseconds = 1/250 milliseconds
+        val f = localIp + localPort + remoteIp + remotePort + secretKey
 
         // we may want to use a better hash function than whatever is provided by the JVM string hash
         // the RFC suggests MD5
-        return M.toUInt() + F.hashCode().toUInt()
+        return m.toUInt() + f.hashCode().toUInt()
     }
 }

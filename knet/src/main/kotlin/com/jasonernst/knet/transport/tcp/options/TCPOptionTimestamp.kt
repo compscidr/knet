@@ -21,9 +21,8 @@ data class TCPOptionTimestamp(
     }
 
     companion object {
-        fun maybeTimestamp(tcpHeader: TCPHeader): TCPOptionTimestamp? {
-            return tcpHeader.getOptions().find { it.type == TCPOptionTypeSupported.Timestamps }
+        fun maybeTimestamp(tcpHeader: TCPHeader): TCPOptionTimestamp? =
+            tcpHeader.getOptions().find { it.type == TCPOptionTypeSupported.Timestamps }
                 as TCPOptionTimestamp?
-        }
     }
 }

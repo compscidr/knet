@@ -92,10 +92,9 @@ data class TCPOptionMaximumSegmentSize(
         val defaultIpv4MSS: UShort = 536u
         val defaultIpv6MSS: UShort = 1220u
 
-        fun maybeMSS(tcpHeader: TCPHeader): TCPOptionMaximumSegmentSize? {
-            return tcpHeader.getOptions().find { it.type == TCPOptionTypeSupported.MaximumSegmentSize }
+        fun maybeMSS(tcpHeader: TCPHeader): TCPOptionMaximumSegmentSize? =
+            tcpHeader.getOptions().find { it.type == TCPOptionTypeSupported.MaximumSegmentSize }
                 as TCPOptionMaximumSegmentSize?
-        }
 
         fun mssOrDefault(
             tcpHeader: TCPHeader,
@@ -110,7 +109,5 @@ data class TCPOptionMaximumSegmentSize(
         }
     }
 
-    override fun toString(): String {
-        return "TCPOptionMaximumSegmentSize(kind=${type.kind} size=$size mss=$mss)"
-    }
+    override fun toString(): String = "TCPOptionMaximumSegmentSize(kind=${type.kind} size=$size mss=$mss)"
 }

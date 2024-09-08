@@ -59,10 +59,12 @@ data class TCPHeader(
         // we may wish to change this, see this doc:
         // https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/description-tcp-features
         val DEFAULT_WINDOW_SIZE = 65535.toUShort()
+
         // https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/description-tcp-features
-        val OFFSET_MIN: UByte = 5u  // min because that's the minimum size of a TCP header
+        val OFFSET_MIN: UByte = 5u // min because that's the minimum size of a TCP header
         val OFFSET_MAX: UByte = 15u // maximum because its a 4-bit field
         const val TCP_WORD_LENGTH: UByte = 4u
+
         // with no options
         val MIN_HEADER_LENGTH: UShort = (OFFSET_MIN * TCP_WORD_LENGTH).toUShort()
 
@@ -72,7 +74,7 @@ data class TCPHeader(
             if (stream.remaining() < (OFFSET_MIN * TCP_WORD_LENGTH).toInt()) {
                 throw PacketTooShortException(
                     "Not enough bytes to parse TCP header, expected at least " +
-                            "${OFFSET_MIN * TCP_WORD_LENGTH} but only ${stream.remaining()} available",
+                        "${OFFSET_MIN * TCP_WORD_LENGTH} but only ${stream.remaining()} available",
                 )
             }
 
@@ -189,9 +191,7 @@ data class TCPHeader(
         updateDataOffset()
     }
 
-    fun getOptions(): List<TCPOption> {
-        return options
-    }
+    fun getOptions(): List<TCPOption> = options
 
     /**
      * Options must be added here in order to update the data offset.
@@ -201,9 +201,7 @@ data class TCPHeader(
         updateDataOffset()
     }
 
-    fun getDataOffset(): UByte {
-        return dataOffset
-    }
+    fun getDataOffset(): UByte = dataOffset
 
     /**
      * Sets the congestion window reduced flag.
@@ -216,9 +214,7 @@ data class TCPHeader(
         updateFlags()
     }
 
-    fun isCwr(): Boolean {
-        return cwr
-    }
+    fun isCwr(): Boolean = cwr
 
     /**
      * Sets the ECN-echo flag.
@@ -231,9 +227,7 @@ data class TCPHeader(
         updateFlags()
     }
 
-    fun isEce(): Boolean {
-        return ece
-    }
+    fun isEce(): Boolean = ece
 
     /**
      * Sets the Urgent flag.
@@ -246,9 +240,7 @@ data class TCPHeader(
         updateFlags()
     }
 
-    fun isUrg(): Boolean {
-        return urg
-    }
+    fun isUrg(): Boolean = urg
 
     /**
      * Sets the acknowledgement flag.
@@ -260,9 +252,7 @@ data class TCPHeader(
         updateFlags()
     }
 
-    fun isAck(): Boolean {
-        return ack
-    }
+    fun isAck(): Boolean = ack
 
     /**
      * Sets the push flag which causes data to be forwarded immediately instead of waiting for
@@ -277,9 +267,7 @@ data class TCPHeader(
         updateFlags()
     }
 
-    fun isPsh(): Boolean {
-        return psh
-    }
+    fun isPsh(): Boolean = psh
 
     /**
      * Sets the reset flag which resets the connection.
@@ -291,9 +279,7 @@ data class TCPHeader(
         updateFlags()
     }
 
-    fun isRst(): Boolean {
-        return rst
-    }
+    fun isRst(): Boolean = rst
 
     /**
      * Sets the syn flag which is done at the start of a TCP connection during the three-way handshake.
@@ -305,9 +291,7 @@ data class TCPHeader(
         updateFlags()
     }
 
-    fun isSyn(): Boolean {
-        return syn
-    }
+    fun isSyn(): Boolean = syn
 
     /**
      * Sets the finished flag to terminate the TCP connection.
@@ -319,17 +303,13 @@ data class TCPHeader(
         updateFlags()
     }
 
-    fun isFin(): Boolean {
-        return fin
-    }
+    fun isFin(): Boolean = fin
 
     /**
      * Header length is the data offset field * the size of TCP words (4 bytes). This is the
      * length of the minimal TCP header (4 words) + the length of the options.
      */
-    override fun getHeaderLength(): UShort {
-        return (dataOffset * TCP_WORD_LENGTH).toUShort()
-    }
+    override fun getHeaderLength(): UShort = (dataOffset * TCP_WORD_LENGTH).toUShort()
 
     override fun toByteArray(order: ByteOrder): ByteArray {
         // logger.debug("TCP HEADER LENGTH: ${getHeaderLength()}")
@@ -359,25 +339,24 @@ data class TCPHeader(
         return buffer.array()
     }
 
-    override fun toString(): String {
-        return "TcpHeader{" +
-                "sourcePort=" + Integer.toUnsignedString(sourcePort.toInt() and 0xFFFF) +
-                ", destinationPort=" + Integer.toUnsignedString(destinationPort.toInt() and 0xFFFF) +
-                ", sequenceNumber=" + sequenceNumber +
-                ", acknowledgementNumber=" + acknowledgementNumber +
-                ", dataOffset=" + Integer.toUnsignedString(dataOffset.toInt()) +
-                ", cwr=" + cwr +
-                ", ece=" + ece +
-                ", urg=" + urg +
-                ", ack=" + ack +
-                ", psh=" + psh +
-                ", rst=" + rst +
-                ", syn=" + syn +
-                ", fin=" + fin +
-                ", windowSize=" + Integer.toUnsignedString(windowSize.toInt() and 0xFFFF) +
-                ", checksum=" + checksum +
-                ", urgentPointer=" + Integer.toUnsignedString(urgentPointer.toInt() and 0xfff) +
-                ", options=" + options +
-                '}'
-    }
+    override fun toString(): String =
+        "TcpHeader{" +
+            "sourcePort=" + Integer.toUnsignedString(sourcePort.toInt() and 0xFFFF) +
+            ", destinationPort=" + Integer.toUnsignedString(destinationPort.toInt() and 0xFFFF) +
+            ", sequenceNumber=" + sequenceNumber +
+            ", acknowledgementNumber=" + acknowledgementNumber +
+            ", dataOffset=" + Integer.toUnsignedString(dataOffset.toInt()) +
+            ", cwr=" + cwr +
+            ", ece=" + ece +
+            ", urg=" + urg +
+            ", ack=" + ack +
+            ", psh=" + psh +
+            ", rst=" + rst +
+            ", syn=" + syn +
+            ", fin=" + fin +
+            ", windowSize=" + Integer.toUnsignedString(windowSize.toInt() and 0xFFFF) +
+            ", checksum=" + checksum +
+            ", urgentPointer=" + Integer.toUnsignedString(urgentPointer.toInt() and 0xfff) +
+            ", options=" + options +
+            '}'
 }

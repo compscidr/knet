@@ -31,7 +31,7 @@ class EncapsulationTests {
     ) {
         val protocol = IPType.fromValue(nextHeader.protocol)
         val ipPayloadSize = nextHeader.getHeaderLength().toInt() + payload.size
-        val ipHeader = IPHeader.createIPHeader(sourceAddress.address, destinationAddress.address, protocol,ipPayloadSize)
+        val ipHeader = IPHeader.createIPHeader(sourceAddress.address, destinationAddress.address, protocol, ipPayloadSize)
         logger.debug("IP Header: {}", ipHeader)
 
         // compute checksums
@@ -116,7 +116,7 @@ class EncapsulationTests {
             TCPHeader(
                 sourcePort = sourcePort.toUShort(),
                 destinationPort = destPort.toUShort(),
-                 sequenceNumber = 100u,
+                sequenceNumber = 100u,
                 acknowledgementNumber = 500u,
                 windowSize = 35000.toUShort(),
             )

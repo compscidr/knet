@@ -3,7 +3,9 @@ package com.jasonernst.knet.transport.tcp.options
 /**
  * https://www.iana.org/assignments/tcp-parameters/tcp-parameters.xhtml#tcp-parameters-1
  */
-enum class TCPOptionTypeSupported(override val kind: UByte) : TCPOptionType {
+enum class TCPOptionTypeSupported(
+    override val kind: UByte,
+) : TCPOptionType {
     EndOfOptionList(0u),
     NoOperation(1u),
     MaximumSegmentSize(2u),

@@ -16,8 +16,8 @@ data class UDPHeader(
     // 16-bits, checksum of the UDP header, IP pseudo-header and UDP data
     override var checksum: UShort = 0u,
     override val protocol: UByte = IPType.UDP.value,
-    override val typeString: String = "UDP") :
-    TransportHeader {
+    override val typeString: String = "UDP",
+) : TransportHeader {
     companion object {
         const val UDP_HEADER_LENGTH: UShort = 8u // udp header is not variable size unlike TCP
 
@@ -38,9 +38,7 @@ data class UDPHeader(
         }
     }
 
-    override fun getHeaderLength(): UShort {
-        return UDP_HEADER_LENGTH
-    }
+    override fun getHeaderLength(): UShort = UDP_HEADER_LENGTH
 
     override fun toByteArray(order: ByteOrder): ByteArray {
         val buffer = ByteBuffer.allocate(UDP_HEADER_LENGTH.toInt())
