@@ -44,7 +44,7 @@ jobs:
         run: ./gradlew assemble
 
       - name: Lib tests
-        run: ./gradlew :test -DexcludeTags="Nightly"
+        run: ./gradlew test -DexcludeTags="Nightly"
         timeout-minutes: 10
 
       - name: Upload reports to Codecov
