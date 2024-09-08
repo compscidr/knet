@@ -1,0 +1,56 @@
+name: Bump Library Tests
+
+on:
+  pull_request:
+    types: [ opened, synchronize ]
+    paths:
+      - 'lib/**'
+      - 'app/**' # if we don't run the lib tests when the app tests run we'll end up with missing test coverage
+      - '.github/workflows/test-lib.yml'
+      - 'testservers/src/main/**'
+      - 'testservers/build.gradle.kts'
+      - 'build.gradle.kts'
+      - 'gradle/libs.versions.toml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  jvm-tests:
+
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+
+      # outputs the host name of the runner to help debug if there are multiple runners with same
+      # prefix
+      - name: Debug Hostname and IP
+        run: |
+          echo "Runner host: $HOST_NAME"
+          curl https://api.ipify.org
+
+      - name: Lint
+        run: ./gradlew lintKotlin
+
+      - name: Build
+        run: ./gradlew compileJava compileKotlin compileTestJava compileTestKotlin
+
+      - name: Assemble
+        run: ./gradlew assemble
+
+      - name: Lib tests
+        run: ./gradlew :test -DexcludeTags="Nightly"
+        timeout-minutes: 10
+
+      - name: Upload reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unittests
