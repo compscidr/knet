@@ -1,4 +1,6 @@
 # knet
+[![codecov](https://codecov.io/gh/compscidr/knet/graph/badge.svg?token=yBstrWw9Mm)](https://codecov.io/gh/compscidr/knet) &nbsp;
+
 Kotlin user-space network stack. This can be used for:
 - An android VPN client / server
 - A kotlin / java TUN/TAP device
