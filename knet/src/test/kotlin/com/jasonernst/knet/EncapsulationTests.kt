@@ -35,6 +35,7 @@ class EncapsulationTests {
         logger.debug("IP Header: {}", ipHeader)
 
         // compute checksums
+        // TODO: fix this
 //        if (transportHeader is UDPHeader) {
 //            transportHeader.checksum = TransportHeaderFactoryImpl.computeChecksum(ipHeader, transportHeader, payload)
 //        } else if (transportHeader is TCPHeader) {
