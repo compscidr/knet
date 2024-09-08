@@ -1,2 +1,12 @@
 # knet
-Kotlin user-space network stack
+Kotlin user-space network stack. This can be used for:
+- An android VPN client / server
+- A kotlin / java TUN/TAP device
+- Interop testing with other network protocol implementations
+
+## What is implemented
+- [] IPv4
+- [] IPv6
+- [] ICMP (via https://github.com/compscidr/icmp)
+- [] TCP
+- [] UDP
