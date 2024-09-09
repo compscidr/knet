@@ -1,5 +1,6 @@
 package com.jasonernst.knet.nextheader
 
+import com.jasonernst.icmp_common.ICMPHeader
 import com.jasonernst.knet.ip.IPType
 import com.jasonernst.knet.transport.tcp.TCPHeader
 import com.jasonernst.knet.transport.udp.UDPHeader
@@ -26,6 +27,14 @@ interface NextHeader {
 
                 IPType.UDP.value -> {
                     UDPHeader.fromStream(stream)
+                }
+
+                IPType.ICMP.value -> {
+                    ICMPNextHeaderWrapper(ICMPHeader.fromStream(buffer = stream), protocol = IPType.ICMP.value, typeString = "ICMP")
+                }
+
+                IPType.IPV6_ICMP.value -> {
+                    ICMPNextHeaderWrapper(ICMPHeader.fromStream(buffer = stream), protocol = IPType.IPV6_ICMP.value, typeString = "ICMPv6")
                 }
 
                 else -> {
