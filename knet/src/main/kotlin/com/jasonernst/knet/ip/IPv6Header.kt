@@ -25,9 +25,9 @@ data class IPv6Header(
     // 8-bits: hop limit, decremented by 1 at each hop, if 0, packet is discarded, similar to TTL
     val hopLimit: UByte = 0u,
     // 128-bits: source address
-    override val sourceAddress: InetAddress,
+    override val sourceAddress: InetAddress = Inet6Address.getByName("::1"),
     // 128-bits: destination address
-    override val destinationAddress: InetAddress,
+    override val destinationAddress: InetAddress = Inet6Address.getByName("::1"),
     val extensionHeaders: List<IPv6ExtensionHeader> = emptyList(),
 ) : IPHeader {
     companion object {
@@ -72,14 +72,7 @@ data class IPv6Header(
             val destinationBuffer = ByteArray(16)
             stream[destinationBuffer]
             val destinationAddress = Inet6Address.getByAddress(destinationBuffer) as Inet6Address
-
-            // TODO: parse extension headers
-//            val hopByHopOption =
-//                if (protocol == IPType.HOPOPT.value) {
-//                    IPv6HopByHopOption.fromStream(stream)
-//                } else {
-//                    null
-//                }
+            val options = IPv6ExtensionHeader.fromStream(stream, IPType.fromValue(protocol))
 
             return IPv6Header(
                 ipVersion,
@@ -90,7 +83,7 @@ data class IPv6Header(
                 hopLimit,
                 sourceAddress,
                 destinationAddress,
-                emptyList(), // todo properly parse this
+                options,
             )
         }
     }
@@ -115,7 +108,7 @@ data class IPv6Header(
         return buffer.array()
     }
 
-    override fun getHeaderLength(): UShort = (IP6_HEADER_SIZE + (extensionHeaders.sumOf { it.length.toInt() }).toUShort()).toUShort()
+    override fun getHeaderLength(): UShort = (IP6_HEADER_SIZE + (extensionHeaders.sumOf { it.getExtensionLength() }).toUShort()).toUShort()
 
     override fun getTotalLength(): UShort = (getHeaderLength() + payloadLength).toUShort()
 
