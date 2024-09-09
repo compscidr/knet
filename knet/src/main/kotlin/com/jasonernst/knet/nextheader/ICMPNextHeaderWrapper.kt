@@ -3,7 +3,7 @@ package com.jasonernst.knet.nextheader
 import com.jasonernst.icmp_common.ICMPHeader
 import java.nio.ByteOrder
 
-class ICMPNextHeaderWrapper(
+data class ICMPNextHeaderWrapper(
     val icmpHeader: ICMPHeader,
     override val protocol: UByte,
     override val typeString: String,
