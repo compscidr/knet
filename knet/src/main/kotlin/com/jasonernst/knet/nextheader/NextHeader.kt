@@ -34,7 +34,7 @@ interface NextHeader {
                 }
 
                 IPType.IPV6_ICMP.value -> {
-                    ICMPNextHeaderWrapper(ICMPHeader.fromStream(buffer = stream), protocol = IPType.IPV6_ICMP.value, typeString = "ICMPv6")
+                    ICMPNextHeaderWrapper(ICMPHeader.fromStream(buffer = stream, isIcmpV4 = false), protocol = IPType.IPV6_ICMP.value, typeString = "ICMPv6")
                 }
 
                 else -> {

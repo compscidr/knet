@@ -4,7 +4,7 @@ import com.jasonernst.icmp_common.ICMPHeader
 import java.nio.ByteOrder
 
 class ICMPNextHeaderWrapper(
-    private val icmpHeader: ICMPHeader,
+    val icmpHeader: ICMPHeader,
     override val protocol: UByte,
     override val typeString: String,
 ) : NextHeader {
