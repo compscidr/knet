@@ -136,7 +136,7 @@ class TCPOptionTests {
         tcpHeader.setAck(true)
         val address = InetAddress.getLoopbackAddress()
         val ipHeader = IPHeader.createIPHeader(address, address, IPType.TCP, tcpHeader.getHeaderLength().toInt())
-        //tcpHeader.checksum = TransportHeaderFactoryImpl.computeChecksum(ipHeader, tcpHeader, ByteBuffer.allocate(0))
+        // tcpHeader.checksum = TransportHeaderFactoryImpl.computeChecksum(ipHeader, tcpHeader, ByteBuffer.allocate(0))
 
         val buffer = ByteBuffer.allocate(ipHeader.getTotalLength().toInt())
         buffer.put(ipHeader.toByteArray())
