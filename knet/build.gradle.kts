@@ -20,7 +20,7 @@ kotlin {
 tasks.jacocoTestReport {
     reports {
         xml.required = true
-        html.required = false
+        html.required = true
     }
 }
 
