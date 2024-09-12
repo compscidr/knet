@@ -1,17 +1,17 @@
 package com.jasonernst.knet.transport.tcp
 
 import com.jasonernst.knet.PacketTooShortException
-import com.jasonernst.knet.ip.IPType
+import com.jasonernst.knet.ip.IpType
 import com.jasonernst.knet.transport.TransportHeader
-import com.jasonernst.knet.transport.tcp.options.TCPOption
-import com.jasonernst.knet.transport.tcp.options.TCPOption.Companion.parseOptions
+import com.jasonernst.knet.transport.tcp.options.TcpOption
+import com.jasonernst.knet.transport.tcp.options.TcpOption.Companion.parseOptions
 import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.ceil
 import kotlin.random.Random
 
-data class TCPHeader(
+data class TcpHeader(
     // 16-bits, source port
     override var sourcePort: UShort = Random.nextInt(UShort.MAX_VALUE.toInt()).toUShort(),
     // 16-bits, destination port
@@ -41,8 +41,8 @@ data class TCPHeader(
     var urgentPointer: UShort = 0u,
     // variable length depending on the options. Important that this remains private to force the
     // use of the add function which recalculates the data offset.
-    private var options: List<TCPOption> = listOf(),
-    override val protocol: UByte = IPType.TCP.value,
+    private var options: List<TcpOption> = listOf(),
+    override val protocol: UByte = IpType.TCP.value,
     override val typeString: String = "TCP",
 ) : TransportHeader {
     val logger = LoggerFactory.getLogger(javaClass)
@@ -68,7 +68,7 @@ data class TCPHeader(
         // with no options
         val MIN_HEADER_LENGTH: UShort = (OFFSET_MIN * TCP_WORD_LENGTH).toUShort()
 
-        fun fromStream(stream: ByteBuffer): TCPHeader {
+        fun fromStream(stream: ByteBuffer): TcpHeader {
             val start = stream.position()
             // ensure we have enough bytes to get to the data offset of the header
             if (stream.remaining() < (OFFSET_MIN * TCP_WORD_LENGTH).toInt()) {
@@ -91,7 +91,7 @@ data class TCPHeader(
             // if we fail to parse the options, this will throw a PacketHeaderException
             val options = parseOptions(stream, start + (dataOffset * TCP_WORD_LENGTH).toInt())
 
-            return TCPHeader(
+            return TcpHeader(
                 sourcePort = sourcePort,
                 destinationPort = destinationPort,
                 sequenceNumber = sequenceNumber,
@@ -191,12 +191,12 @@ data class TCPHeader(
         updateDataOffset()
     }
 
-    fun getOptions(): List<TCPOption> = options
+    fun getOptions(): List<TcpOption> = options
 
     /**
      * Options must be added here in order to update the data offset.
      */
-    fun addOption(option: TCPOption) {
+    fun addOption(option: TcpOption) {
         options = options + option
         updateDataOffset()
     }

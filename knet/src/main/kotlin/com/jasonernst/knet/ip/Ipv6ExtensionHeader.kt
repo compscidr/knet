@@ -11,7 +11,7 @@ import java.nio.ByteOrder
  * https://www.rfc-editor.org/rfc/rfc6564#page-4
  * https://www.rfc-editor.org/rfc/rfc7045.html
  */
-open class IPv6ExtensionHeader(
+open class Ipv6ExtensionHeader(
     open val nextHeader: UByte,
     open val length: UByte,
     open val data: ByteArray,
@@ -37,7 +37,7 @@ open class IPv6ExtensionHeader(
          * Authentication
          * Encapsulating Security Payload
          */
-        val requiredExtensionHeaders = listOf(IPType.HOPOPT, IPType.IPV6_FRAG, IPType.IPV6_OPTS, IPType.IPV6_ROUTE, IPType.AH, IPType.ESP)
+        val requiredExtensionHeaders = listOf(IpType.HOPOPT, IpType.IPV6_FRAG, IpType.IPV6_OPTS, IpType.IPV6_ROUTE, IpType.AH, IpType.ESP)
 
         /**
          * This will continue to process IPv6 extension headers until the nextheader is not one, ie)
@@ -45,10 +45,10 @@ open class IPv6ExtensionHeader(
          */
         fun fromStream(
             stream: ByteBuffer,
-            firstHeader: IPType,
-        ): List<IPv6ExtensionHeader> {
+            firstHeader: IpType,
+        ): List<Ipv6ExtensionHeader> {
             var currentHeader = firstHeader
-            val extensionList = mutableListOf<IPv6ExtensionHeader>()
+            val extensionList = mutableListOf<Ipv6ExtensionHeader>()
             while (currentHeader in requiredExtensionHeaders) {
                 if (stream.remaining() < 2) {
                     throw PacketTooShortException("Not enough bytes remaining to determine the length")
@@ -59,15 +59,15 @@ open class IPv6ExtensionHeader(
                 stream.get(data)
 
                 when (currentHeader) {
-                    IPType.HOPOPT -> {
-                        extensionList.add(IPv6HopByHopOption(nextHeader, length, data))
+                    IpType.HOPOPT -> {
+                        extensionList.add(Ipv6HopByHopOption(nextHeader, length, data))
                     }
                     else -> {
                         throw IllegalArgumentException("Unsupported IPv6 extension header: $currentHeader")
                     }
                 }
 
-                currentHeader = IPType.fromValue(nextHeader)
+                currentHeader = IpType.fromValue(nextHeader)
             }
             return extensionList
         }

@@ -1,6 +1,6 @@
 package com.jasonernst.knet
 
-import com.jasonernst.knet.ip.IPHeader
+import com.jasonernst.knet.ip.IpHeader
 import com.jasonernst.knet.nextheader.NextHeader
 import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
@@ -12,7 +12,7 @@ import java.nio.ByteOrder
  * with hop-by-hop options, for example).
  */
 data class Packet(
-    val ipHeader: IPHeader,
+    val ipHeader: IpHeader,
     val nextHeaders: NextHeader,
     val payload: ByteArray,
 ) {
@@ -20,12 +20,14 @@ data class Packet(
 
     companion object {
         fun fromStream(stream: ByteBuffer): Packet {
-            val ipHeader = IPHeader.fromStream(stream)
+            val ipHeader = IpHeader.fromStream(stream)
             val nextHeader = NextHeader.fromStream(stream, ipHeader.protocol)
 
             val expectedRemaining = (ipHeader.getPayloadLength() - nextHeader.getHeaderLength()).toInt()
             if (stream.remaining() < expectedRemaining) {
-                throw PacketTooShortException("Packet too short to obtain entire payload, have ${stream.remaining()}, expecting $expectedRemaining")
+                throw PacketTooShortException(
+                    "Packet too short to obtain entire payload, have ${stream.remaining()}, expecting $expectedRemaining",
+                )
             }
             val payload = ByteArray(expectedRemaining)
             stream.get(payload)

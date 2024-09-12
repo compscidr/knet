@@ -1,10 +1,10 @@
 package com.jasonernst.knet
 
-import com.jasonernst.knet.ip.IPHeader
-import com.jasonernst.knet.ip.IPType
+import com.jasonernst.knet.ip.IpHeader
+import com.jasonernst.knet.ip.IpType
 import com.jasonernst.knet.nextheader.NextHeader
-import com.jasonernst.knet.transport.tcp.TCPHeader
-import com.jasonernst.knet.transport.udp.UDPHeader
+import com.jasonernst.knet.transport.tcp.TcpHeader
+import com.jasonernst.knet.transport.udp.UdpHeader
 import com.jasonernst.packetdumper.stringdumper.StringPacketDumper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -29,9 +29,9 @@ class EncapsulationTests {
         nextHeader: NextHeader,
         payload: ByteArray,
     ) {
-        val protocol = IPType.fromValue(nextHeader.protocol)
+        val protocol = IpType.fromValue(nextHeader.protocol)
         val ipPayloadSize = nextHeader.getHeaderLength().toInt() + payload.size
-        val ipHeader = IPHeader.createIPHeader(sourceAddress.address, destinationAddress.address, protocol, ipPayloadSize)
+        val ipHeader = IpHeader.createIPHeader(sourceAddress.address, destinationAddress.address, protocol, ipPayloadSize)
         logger.debug("IP Header: {}", ipHeader)
 
         // compute checksums
@@ -47,7 +47,7 @@ class EncapsulationTests {
         val stream = ByteBuffer.wrap(packet.toByteArray())
         val streamHexDump = stringPacketDumper.dumpBufferToString(stream, 0, stream.limit())
         logger.debug("[TEST] STREAM:\n$streamHexDump")
-        val parsedIpHeader = IPHeader.fromStream(stream)
+        val parsedIpHeader = IpHeader.fromStream(stream)
         // output these so if it stops matching we can easily see why
         logger.debug("[TEST] IP HEADER: {}", ipHeader)
         logger.debug("[TEST] PARSED IP HEADER: {}", parsedIpHeader)
@@ -77,7 +77,7 @@ class EncapsulationTests {
         val sourceAddress = InetSocketAddress(InetAddress.getByName("127.0.0.1"), sourcePort)
         val destPort = Random.Default.nextInt(2 * Short.MAX_VALUE - 1)
         val destinationAddress = InetSocketAddress(InetAddress.getByName("8.8.8.8"), destPort)
-        val udpHeader = UDPHeader(sourcePort.toUShort(), destPort.toUShort(), payload.size.toUShort(), 0u)
+        val udpHeader = UdpHeader(sourcePort.toUShort(), destPort.toUShort(), payload.size.toUShort(), 0u)
         encapsulationTest(sourceAddress, destinationAddress, udpHeader, payload)
     }
 
@@ -95,7 +95,7 @@ class EncapsulationTests {
         val sourceAddress = InetSocketAddress(InetAddress.getByName("::1"), sourcePort)
         val destPort = Random.Default.nextInt(2 * Short.MAX_VALUE - 1)
         val destinationAddress = InetSocketAddress(InetAddress.getByName("::2"), destPort)
-        val udpHeader = UDPHeader(sourcePort.toUShort(), destPort.toUShort(), payload.size.toUShort(), 0u)
+        val udpHeader = UdpHeader(sourcePort.toUShort(), destPort.toUShort(), payload.size.toUShort(), 0u)
         encapsulationTest(sourceAddress, destinationAddress, udpHeader, payload)
     }
 
@@ -114,7 +114,7 @@ class EncapsulationTests {
         val destPort = Random.Default.nextInt(2 * Short.MAX_VALUE - 1)
         val destinationAddress = InetSocketAddress(InetAddress.getByName("8.8.8.8"), destPort)
         val tcpHeader =
-            TCPHeader(
+            TcpHeader(
                 sourcePort = sourcePort.toUShort(),
                 destinationPort = destPort.toUShort(),
                 sequenceNumber = 100u,
@@ -139,7 +139,7 @@ class EncapsulationTests {
         val destPort = Random.Default.nextInt(2 * Short.MAX_VALUE - 1)
         val destinationAddress = InetSocketAddress(InetAddress.getByName("::2"), destPort)
         val tcpHeader =
-            TCPHeader(
+            TcpHeader(
                 sourcePort = sourcePort.toUShort(),
                 destinationPort = destPort.toUShort(),
                 sequenceNumber = 100u,
@@ -157,19 +157,20 @@ class EncapsulationTests {
         val destPort = Random.Default.nextInt(2 * Short.MAX_VALUE - 1)
         val destinationAddress = InetSocketAddress(InetAddress.getByName("::2"), destPort)
         val tcpHeader =
-            TCPHeader(
+            TcpHeader(
                 sourcePort = sourcePort.toUShort(),
                 destinationPort = destPort.toUShort(),
                 sequenceNumber = 100u,
                 acknowledgementNumber = 500u,
                 windowSize = 35000.toUShort(),
             )
-        val ipHeader = IPHeader.createIPHeader(
-            sourceAddress.address,
-            destinationAddress.address,
-            IPType.TCP,
-            tcpHeader.getHeaderLength().toInt() + payload.size
-        )
+        val ipHeader =
+            IpHeader.createIPHeader(
+                sourceAddress.address,
+                destinationAddress.address,
+                IpType.TCP,
+                tcpHeader.getHeaderLength().toInt() + payload.size,
+            )
         val packet = Packet(ipHeader, tcpHeader, payload)
         val stream = ByteBuffer.wrap(packet.toByteArray())
         val parsedPacket = Packet.fromStream(stream)

@@ -4,8 +4,8 @@ import com.jasonernst.knet.PacketTooShortException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-abstract class TCPOption(
-    val type: TCPOptionTypeSupported,
+abstract class TcpOption(
+    val type: TcpOptionTypeSupported,
     val size: UByte,
 ) {
     companion object {
@@ -26,20 +26,20 @@ abstract class TCPOption(
         fun parseOptions(
             stream: ByteBuffer,
             limit: Int,
-        ): List<TCPOption> {
-            val options = ArrayList<TCPOption>()
+        ): List<TcpOption> {
+            val options = ArrayList<TcpOption>()
             while (stream.position() + 1 <= limit) {
                 val kind = stream.get().toUByte()
-                if (kind == TCPOptionTypeSupported.EndOfOptionList.kind) {
+                if (kind == TcpOptionTypeSupported.EndOfOptionList.kind) {
                     // end of options
                     // logger.debug("End of options")
-                    options.add(TCPOptionEndOfOptionList)
+                    options.add(TcpOptionEndOfOptionList)
                     break
-                } else if (kind == TCPOptionTypeSupported.NoOperation.kind) {
+                } else if (kind == TcpOptionTypeSupported.NoOperation.kind) {
                     // no operation
                     // logger.debug("No operation")
-                    options.add(TCPOptionNoOperation)
-                } else if (kind == TCPOptionTypeSupported.MaximumSegmentSize.kind) {
+                    options.add(TcpOptionNoOperation)
+                } else if (kind == TcpOptionTypeSupported.MaximumSegmentSize.kind) {
                     if (stream.remaining() < 3) {
                         throw PacketTooShortException(
                             "Expecting: 3 bytes, have: ${stream.remaining()} " +
@@ -50,8 +50,8 @@ abstract class TCPOption(
                     // skip over the length
                     stream.get()
                     val maxSegmentSize = stream.short.toUShort()
-                    options.add(TCPOptionMaximumSegmentSize(mss = maxSegmentSize))
-                } else if (kind == TCPOptionTypeSupported.Timestamps.kind) {
+                    options.add(TcpOptionMaximumSegmentSize(mss = maxSegmentSize))
+                } else if (kind == TcpOptionTypeSupported.Timestamps.kind) {
                     // logger.debug("Timestamps")
                     if (stream.remaining() < 9) {
                         throw PacketTooShortException(
@@ -63,7 +63,7 @@ abstract class TCPOption(
                     stream.get()
                     val tsval = stream.getInt().toUInt()
                     val tsecr = stream.getInt().toUInt()
-                    options.add(TCPOptionTimestamp(tsval, tsecr))
+                    options.add(TcpOptionTimestamp(tsval, tsecr))
 //            } else if (kind == TCPOptionSACKPermitted.kind) {
 //                // skip over length
 //                BufferUtil.getUnsignedByte(stream).toByte()
@@ -97,7 +97,7 @@ abstract class TCPOption(
                     }
                     val data = ByteArray(length - 2)
                     stream.get(data)
-                    options.add(TCPOptionUnsupported(kind, data))
+                    options.add(TcpOptionUnsupported(kind, data))
                 }
             }
             stream.position(limit) // in case we have zero padding

@@ -5,7 +5,7 @@ package com.jasonernst.knet.ip
  *
  * https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
  */
-enum class IPType(
+enum class IpType(
     val value: UByte,
 ) {
     HOPOPT(0u),

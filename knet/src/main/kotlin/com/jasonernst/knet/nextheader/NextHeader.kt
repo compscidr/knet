@@ -1,9 +1,9 @@
 package com.jasonernst.knet.nextheader
 
 import com.jasonernst.icmp_common.ICMPHeader
-import com.jasonernst.knet.ip.IPType
-import com.jasonernst.knet.transport.tcp.TCPHeader
-import com.jasonernst.knet.transport.udp.UDPHeader
+import com.jasonernst.knet.ip.IpType
+import com.jasonernst.knet.transport.tcp.TcpHeader
+import com.jasonernst.knet.transport.udp.UdpHeader
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -21,22 +21,22 @@ interface NextHeader {
             protocol: UByte,
         ): NextHeader =
             when (protocol) {
-                IPType.TCP.value -> {
-                    TCPHeader.fromStream(stream)
+                IpType.TCP.value -> {
+                    TcpHeader.fromStream(stream)
                 }
 
-                IPType.UDP.value -> {
-                    UDPHeader.fromStream(stream)
+                IpType.UDP.value -> {
+                    UdpHeader.fromStream(stream)
                 }
 
-                IPType.ICMP.value -> {
-                    ICMPNextHeaderWrapper(ICMPHeader.fromStream(buffer = stream), protocol = IPType.ICMP.value, typeString = "ICMP")
+                IpType.ICMP.value -> {
+                    ICMPNextHeaderWrapper(ICMPHeader.fromStream(buffer = stream), protocol = IpType.ICMP.value, typeString = "ICMP")
                 }
 
-                IPType.IPV6_ICMP.value -> {
+                IpType.IPV6_ICMP.value -> {
                     ICMPNextHeaderWrapper(
                         ICMPHeader.fromStream(buffer = stream, isIcmpV4 = false),
-                        protocol = IPType.IPV6_ICMP.value,
+                        protocol = IpType.IPV6_ICMP.value,
                         typeString = "ICMPv6",
                     )
                 }

@@ -2,11 +2,11 @@ package com.jasonernst.knet.ip
 
 import com.jasonernst.icmp_common.Checksum
 import com.jasonernst.knet.PacketTooShortException
-import com.jasonernst.knet.ip.IPHeader.Companion.IP4_VERSION
-import com.jasonernst.knet.ip.IPv4Header.Companion.IP4_MIN_HEADER_LENGTH
-import com.jasonernst.knet.ip.IPv4Header.Companion.IP4_WORD_LENGTH
-import com.jasonernst.knet.transport.tcp.TCPHeader
-import com.jasonernst.knet.transport.tcp.options.TCPOptionEndOfOptionList
+import com.jasonernst.knet.ip.IpHeader.Companion.IP4_VERSION
+import com.jasonernst.knet.ip.Ipv4Header.Companion.IP4_MIN_HEADER_LENGTH
+import com.jasonernst.knet.ip.Ipv4Header.Companion.IP4_WORD_LENGTH
+import com.jasonernst.knet.transport.tcp.TcpHeader
+import com.jasonernst.knet.transport.tcp.options.TcpOptionEndOfOptionList
 import com.jasonernst.packetdumper.stringdumper.StringPacketDumper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -18,7 +18,7 @@ import java.nio.ByteBuffer
 /**
  * Mostly tests checksums
  */
-class IPv4HeaderTest {
+class Ipv4HeaderTest {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val stringPacketDumper = StringPacketDumper()
 
@@ -104,7 +104,7 @@ class IPv4HeaderTest {
         val destination = InetAddress.getByName("8.8.8.8")
         // don't fragment = false
         val fragment =
-            IPv4Header(
+            Ipv4Header(
                 version = IP4_VERSION,
                 ihl = (IP4_MIN_HEADER_LENGTH / IP4_WORD_LENGTH).toUByte(),
                 dscp = 0u,
@@ -123,12 +123,12 @@ class IPv4HeaderTest {
         var headerBytes = fragment.toByteArray()
         fragment.headerChecksum = ByteBuffer.wrap(headerBytes, 10, 2).short.toUShort()
         var buffer = ByteBuffer.wrap(fragment.toByteArray())
-        var parsedHeader = IPHeader.fromStream(buffer)
+        var parsedHeader = IpHeader.fromStream(buffer)
         assertEquals(fragment, parsedHeader)
 
         // don't fragment = true
         val dontFragment =
-            IPv4Header(
+            Ipv4Header(
                 version = IP4_VERSION,
                 ihl = (IP4_MIN_HEADER_LENGTH / IP4_WORD_LENGTH).toUByte(),
                 dscp = 0u,
@@ -148,7 +148,7 @@ class IPv4HeaderTest {
         headerBytes = dontFragment.toByteArray()
         dontFragment.headerChecksum = ByteBuffer.wrap(headerBytes, 10, 2).short.toUShort()
         buffer = ByteBuffer.wrap(dontFragment.toByteArray())
-        parsedHeader = IPHeader.fromStream(buffer)
+        parsedHeader = IpHeader.fromStream(buffer)
         assertEquals(dontFragment, parsedHeader)
     }
 
@@ -158,7 +158,7 @@ class IPv4HeaderTest {
         val destination = InetAddress.getByName("8.8.8.8")
         // don't fragment = false
         val ipv4header =
-            IPv4Header(
+            Ipv4Header(
                 version = IP4_VERSION,
                 ihl = (IP4_MIN_HEADER_LENGTH / IP4_WORD_LENGTH).toUByte(),
                 dscp = 0u,
@@ -177,7 +177,7 @@ class IPv4HeaderTest {
         val headerBytes = ipv4header.toByteArray()
         ipv4header.headerChecksum = ByteBuffer.wrap(headerBytes, 10, 2).short.toUShort()
         val buffer = ByteBuffer.wrap(ipv4header.toByteArray())
-        val parsedHeader = IPHeader.fromStream(buffer)
+        val parsedHeader = IpHeader.fromStream(buffer)
         assertEquals(ipv4header, parsedHeader)
     }
 
@@ -187,7 +187,7 @@ class IPv4HeaderTest {
         val destination = InetAddress.getByName("8.8.8.8")
         // don't fragment = false
         val ipv4header =
-            IPv4Header(
+            Ipv4Header(
                 version = IP4_VERSION,
                 ihl = (IP4_MIN_HEADER_LENGTH / IP4_WORD_LENGTH).toUByte(),
                 dscp = 0b101010u,
@@ -206,7 +206,7 @@ class IPv4HeaderTest {
         val headerBytes = ipv4header.toByteArray()
         ipv4header.headerChecksum = ByteBuffer.wrap(headerBytes, 10, 2).short.toUShort()
         val buffer = ByteBuffer.wrap(ipv4header.toByteArray())
-        val parsedHeader = IPHeader.fromStream(buffer)
+        val parsedHeader = IpHeader.fromStream(buffer)
         assertEquals(ipv4header, parsedHeader)
     }
 
@@ -214,39 +214,39 @@ class IPv4HeaderTest {
         val source = InetAddress.getByName("127.0.0.1")
         val destination = InetAddress.getByName("8.8.8.8")
         val tcpHeader =
-            TCPHeader(
+            TcpHeader(
                 sourcePort = 1234u,
                 destinationPort = 5678u,
                 sequenceNumber = 0x12345678.toUInt(),
                 acknowledgementNumber = 0x87654321.toUInt(),
                 options =
                     arrayListOf(
-                        TCPOptionEndOfOptionList,
+                        TcpOptionEndOfOptionList,
                     ),
             )
         val tcpHeader2 =
-            TCPHeader(
+            TcpHeader(
                 sourcePort = 3456u,
                 destinationPort = 789u,
                 sequenceNumber = 0x12345678.toUInt(),
                 acknowledgementNumber = 0x87654321.toUInt(),
                 options =
                     arrayListOf(
-                        TCPOptionEndOfOptionList,
+                        TcpOptionEndOfOptionList,
                     ),
             )
         val ipHeader =
-            IPHeader.createIPHeader(
+            IpHeader.createIPHeader(
                 source,
                 destination,
-                IPType.TCP,
+                IpType.TCP,
                 tcpHeader.getHeaderLength().toInt(),
             )
         val ipHeader2 =
-            IPHeader.createIPHeader(
+            IpHeader.createIPHeader(
                 source,
                 destination,
-                IPType.UDP,
+                IpType.UDP,
                 tcpHeader2.getHeaderLength().toInt(),
             )
 
@@ -266,22 +266,22 @@ class IPv4HeaderTest {
         val dump = stringPacketDumper.dumpBufferToString(buffer, 0, buffer.limit(), true)
         logger.debug("Buffer: $dump")
 
-        val parsedIpHeader = IPHeader.fromStream(buffer)
-        val parsedTcpHeader = TCPHeader.fromStream(buffer)
-        val parsedIpHeader2 = IPHeader.fromStream(buffer)
-        val parsedTCPHeader2 = TCPHeader.fromStream(buffer)
+        val parsedIpHeader = IpHeader.fromStream(buffer)
+        val parsedTcpHeader = TcpHeader.fromStream(buffer)
+        val parsedIpHeader2 = IpHeader.fromStream(buffer)
+        val parsedTcpHeader2 = TcpHeader.fromStream(buffer)
 
         assertEquals(ipHeader, parsedIpHeader)
         assertEquals(tcpHeader, parsedTcpHeader)
         assertEquals(ipHeader2, parsedIpHeader2)
-        assertEquals(tcpHeader2, parsedTCPHeader2)
+        assertEquals(tcpHeader2, parsedTcpHeader2)
     }
 
     @Test
     fun tooShortPacketTest() {
         val buffer = ByteBuffer.allocate(0)
         assertThrows<PacketTooShortException> {
-            IPv4Header.fromStream(buffer)
+            Ipv4Header.fromStream(buffer)
         }
     }
 
@@ -291,7 +291,7 @@ class IPv4HeaderTest {
         buffer.put(0x00)
         buffer.rewind()
         assertThrows<IllegalArgumentException> {
-            IPv4Header.fromStream(buffer)
+            Ipv4Header.fromStream(buffer)
         }
     }
 
@@ -301,16 +301,16 @@ class IPv4HeaderTest {
         buffer.put(0x00)
         buffer.rewind()
         assertThrows<PacketTooShortException> {
-            IPv4Header.fromStream(buffer)
+            Ipv4Header.fromStream(buffer)
         }
     }
 
     // this is only a temp test until we properly implement ipv4 options
     @Test fun testOptionDropping() {
-        val ipv4Packet = IPv4Header(ihl = 6u)
+        val ipv4Packet = Ipv4Header(ihl = 6u)
         logger.debug("IPv4 packet: {}", ipv4Packet)
         val buffer = ByteBuffer.wrap(ipv4Packet.toByteArray())
-        val parsedPacket = IPHeader.fromStream(buffer)
+        val parsedPacket = IpHeader.fromStream(buffer)
         assertEquals(0u, buffer.remaining().toUInt())
         assertEquals(ipv4Packet, parsedPacket)
     }

@@ -1,7 +1,7 @@
 package com.jasonernst.knet.ip
 
 import com.jasonernst.knet.PacketTooShortException
-import com.jasonernst.knet.ip.IPv4Header.Companion.IP4_MIN_HEADER_LENGTH
+import com.jasonernst.knet.ip.Ipv4Header.Companion.IP4_MIN_HEADER_LENGTH
 import org.slf4j.LoggerFactory
 import java.net.Inet4Address
 import java.net.Inet6Address
@@ -12,13 +12,13 @@ import java.nio.ByteOrder
 /**
  * Collects up the common things between IPv4 and IPv6 headers.
  */
-interface IPHeader {
+interface IpHeader {
     companion object {
-        private val logger = LoggerFactory.getLogger(IPHeader::class.java)
+        private val logger = LoggerFactory.getLogger(IpHeader::class.java)
         const val IP4_VERSION: UByte = 4u
         const val IP6_VERSION: UByte = 6u
 
-        fun fromStream(stream: ByteBuffer): IPHeader {
+        fun fromStream(stream: ByteBuffer): IpHeader {
             val start = stream.position()
             if (stream.remaining() < 1) {
                 throw PacketTooShortException("Packet too short to determine type")
@@ -30,11 +30,11 @@ interface IPHeader {
             return when (val version = (versionByte.toInt() shr 4 and 0x0F).toUByte()) {
                 IP4_VERSION -> {
                     logger.debug("IPv4 packet")
-                    IPv4Header.fromStream(stream)
+                    Ipv4Header.fromStream(stream)
                 }
                 IP6_VERSION -> {
                     logger.debug("IPv6 packet")
-                    IPv6Header.fromStream(stream)
+                    Ipv6Header.fromStream(stream)
                 }
                 else -> {
                     throw IllegalArgumentException("Unknown packet type: $version")
@@ -49,16 +49,16 @@ interface IPHeader {
         fun createIPHeader(
             sourceAddress: InetAddress,
             destinationAddress: InetAddress,
-            protocol: IPType,
+            protocol: IpType,
             payloadSize: Int,
-        ): IPHeader {
+        ): IpHeader {
             require(sourceAddress.javaClass == destinationAddress.javaClass) {
                 "Source ${sourceAddress::javaClass} and destination  ${destinationAddress::javaClass} addresses must be of the same type"
             }
             return when (sourceAddress) {
                 is Inet4Address -> {
                     val totalLength = (IP4_MIN_HEADER_LENGTH + payloadSize.toUShort()).toUShort()
-                    IPv4Header(
+                    Ipv4Header(
                         sourceAddress = sourceAddress,
                         destinationAddress = destinationAddress,
                         protocol = protocol.value,
@@ -66,7 +66,7 @@ interface IPHeader {
                     )
                 }
                 is Inet6Address -> {
-                    IPv6Header(
+                    Ipv6Header(
                         sourceAddress = sourceAddress,
                         destinationAddress = destinationAddress,
                         protocol = protocol.value,

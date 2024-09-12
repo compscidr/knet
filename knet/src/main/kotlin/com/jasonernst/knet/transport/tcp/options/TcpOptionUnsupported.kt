@@ -3,11 +3,11 @@ package com.jasonernst.knet.transport.tcp.options
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class TCPOptionUnsupported(
+class TcpOptionUnsupported(
     val kind: UByte,
     val data: ByteArray,
-) : TCPOption(
-        type = TCPOptionTypeSupported.fromKind(kind),
+) : TcpOption(
+        type = TcpOptionTypeSupported.fromKind(kind),
         size = (BASE_OPTION_SIZE + data.size).toUByte(),
     ) {
     override fun toByteArray(order: ByteOrder): ByteArray {
@@ -21,7 +21,7 @@ class TCPOptionUnsupported(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as TCPOptionUnsupported
+        other as TcpOptionUnsupported
 
         if (kind != other.kind) return false
         if (size != other.size) return false
@@ -40,7 +40,7 @@ class TCPOptionUnsupported(
     override fun toString(): String {
         val kindString =
             try {
-                TCPOptionTypeSupported.fromKind(kind).toString()
+                TcpOptionTypeSupported.fromKind(kind).toString()
             } catch (e: IllegalArgumentException) {
                 "Unknown"
             }

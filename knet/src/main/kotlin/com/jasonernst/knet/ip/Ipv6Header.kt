@@ -1,7 +1,7 @@
 package com.jasonernst.knet.ip
 
 import com.jasonernst.knet.PacketTooShortException
-import com.jasonernst.knet.ip.IPHeader.Companion.IP6_VERSION
+import com.jasonernst.knet.ip.IpHeader.Companion.IP6_VERSION
 import org.slf4j.LoggerFactory
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -11,7 +11,7 @@ import java.nio.ByteOrder
 /**
  * Represents an IPv6 header, including any extension headers.
  */
-data class IPv6Header(
+data class Ipv6Header(
     // 4-bits, should always be IP6_VERSION for an ipv6 packet.
     override val version: UByte = IP6_VERSION,
     // 8-bits: 6 MSB is differentiated service bits for packet classification, 2 LSB is ECN bits
@@ -28,13 +28,13 @@ data class IPv6Header(
     override val sourceAddress: InetAddress = Inet6Address.getByName("::1"),
     // 128-bits: destination address
     override val destinationAddress: InetAddress = Inet6Address.getByName("::1"),
-    val extensionHeaders: List<IPv6ExtensionHeader> = emptyList(),
-) : IPHeader {
+    val extensionHeaders: List<Ipv6ExtensionHeader> = emptyList(),
+) : IpHeader {
     companion object {
-        private val logger = LoggerFactory.getLogger(IPv6Header::class.java)
+        private val logger = LoggerFactory.getLogger(Ipv6Header::class.java)
         private const val IP6_HEADER_SIZE: UShort = 40u // ipv6 header is not variable like ipv4
 
-        fun fromStream(stream: ByteBuffer): IPv6Header {
+        fun fromStream(stream: ByteBuffer): Ipv6Header {
             val start = stream.position()
 
             // ensure we can get the version
@@ -45,7 +45,7 @@ data class IPv6Header(
             // ensure we have an IPv6 packet
             val versionAndHeaderLength = stream.get().toUByte()
             val ipVersion = (versionAndHeaderLength.toInt() shr 4 and 0x0F).toUByte()
-            if (ipVersion != IPHeader.IP6_VERSION) {
+            if (ipVersion != IpHeader.IP6_VERSION) {
                 throw IllegalArgumentException("Invalid IPv6 header. IP version should be 6 but was $ipVersion")
             }
 
@@ -72,9 +72,9 @@ data class IPv6Header(
             val destinationBuffer = ByteArray(16)
             stream[destinationBuffer]
             val destinationAddress = Inet6Address.getByAddress(destinationBuffer) as Inet6Address
-            val options = IPv6ExtensionHeader.fromStream(stream, IPType.fromValue(protocol))
+            val options = Ipv6ExtensionHeader.fromStream(stream, IpType.fromValue(protocol))
 
-            return IPv6Header(
+            return Ipv6Header(
                 ipVersion,
                 trafficClass,
                 flowLabel,

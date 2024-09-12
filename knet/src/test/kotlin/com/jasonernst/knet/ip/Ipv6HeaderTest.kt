@@ -6,12 +6,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.nio.ByteBuffer
 
-class IPv6HeaderTest {
+class Ipv6HeaderTest {
     @Test
     fun tooShort() {
         val stream = ByteBuffer.allocate(0)
         assertThrows<PacketTooShortException> {
-            IPv6Header.fromStream(stream)
+            Ipv6Header.fromStream(stream)
         }
     }
 
@@ -21,7 +21,7 @@ class IPv6HeaderTest {
         stream.put(0x00)
         stream.rewind()
         assertThrows<IllegalArgumentException> {
-            IPv6Header.fromStream(stream)
+            Ipv6Header.fromStream(stream)
         }
     }
 
@@ -32,15 +32,15 @@ class IPv6HeaderTest {
         stream.put(0x00)
         stream.rewind()
         assertThrows<PacketTooShortException> {
-            IPv6Header.fromStream(stream)
+            Ipv6Header.fromStream(stream)
         }
     }
 
     @Test
     fun extensionHeaderTest() {
-        val ipv6Header = IPv6Header(extensionHeaders = listOf(IPv6HopByHopOption()))
+        val ipv6Header = Ipv6Header(extensionHeaders = listOf(Ipv6HopByHopOption()))
         val stream = ByteBuffer.wrap(ipv6Header.toByteArray())
-        val parsedHeader = IPHeader.fromStream(stream)
+        val parsedHeader = IpHeader.fromStream(stream)
         assertEquals(ipv6Header, parsedHeader)
     }
 }

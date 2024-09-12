@@ -2,7 +2,7 @@ package com.jasonernst.knet.ip
 
 import com.jasonernst.icmp_common.Checksum
 import com.jasonernst.knet.PacketTooShortException
-import com.jasonernst.knet.ip.IPHeader.Companion.IP4_VERSION
+import com.jasonernst.knet.ip.IpHeader.Companion.IP4_VERSION
 import org.slf4j.LoggerFactory
 import java.net.Inet4Address
 import java.net.InetAddress
@@ -13,7 +13,7 @@ import kotlin.experimental.or
 /**
  * Internet Protocol Version 4 Header Implementation.
  */
-data class IPv4Header(
+data class Ipv4Header(
     // 4-bits, should always be IP4_VERSION for an ipv4 packet.
     override val version: UByte = IP4_VERSION,
     // 4-bits, header size. Offset to start of data. This value x IP4_WORD_LENGTH is the header
@@ -38,7 +38,7 @@ data class IPv4Header(
     val ttl: UByte = 64u,
     // 8-bits, Next-layer protocol (TCP, UDP, ICMP, etc)
     // from this list: https://en.wikipedia.org/wiki/List_of_IP_protocol_numbers
-    override val protocol: UByte = IPType.UDP.value,
+    override val protocol: UByte = IpType.UDP.value,
     // 16-bits, one's complement of the one's complement sum of the entire header
     // (does not include the payload)
     // https://en.wikipedia.org/wiki/IPv4#Header_checksum
@@ -47,7 +47,7 @@ data class IPv4Header(
     override val sourceAddress: InetAddress = Inet4Address.getLocalHost(),
     // 32-bits, destination address
     override val destinationAddress: InetAddress = Inet4Address.getLocalHost(),
-) : IPHeader {
+) : IpHeader {
     // 3-bits: set from mayFragment and lastFragment
     // bit 0: Reserved; must be zero
     // bit 1: Don't Fragment (DF)
@@ -74,12 +74,12 @@ data class IPv4Header(
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(IPv4Header::class.java)
+        private val logger = LoggerFactory.getLogger(Ipv4Header::class.java)
         const val IP4_WORD_LENGTH: UByte = 4u
         val IP4_MIN_HEADER_LENGTH: UByte = (IP4_WORD_LENGTH * 5u).toUByte()
         const val IP4_MAX_HEADER_LENGTH: UByte = 60u
 
-        fun fromStream(stream: ByteBuffer): IPv4Header {
+        fun fromStream(stream: ByteBuffer): Ipv4Header {
             val start = stream.position()
             // logger.debug("Parsing IPv4 header from position: $start. remaining: ${stream.remaining()}, limit: ${stream.limit()}")
 
@@ -133,7 +133,7 @@ data class IPv4Header(
             }
             logger.debug("POS: ${stream.position()}, remaining: ${stream.remaining()}")
 
-            return IPv4Header(
+            return Ipv4Header(
                 ihl = ihl,
                 dscp = dscp,
                 ecn = ecn,

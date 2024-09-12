@@ -1,6 +1,6 @@
 package com.jasonernst.knet.transport.tcp.options
 
-import com.jasonernst.knet.transport.tcp.TCPHeader
+import com.jasonernst.knet.transport.tcp.TcpHeader
 import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -73,9 +73,9 @@ import java.nio.ByteOrder
  *    This has been a point of confusion historically, as explained in RFC
  *    6691, Section 3.1.
  */
-data class TCPOptionMaximumSegmentSize(
+data class TcpOptionMaximumSegmentSize(
     val mss: UShort,
-) : TCPOption(type = TCPOptionTypeSupported.MaximumSegmentSize, size = (BASE_OPTION_SIZE + 2).toUByte()) {
+) : TcpOption(type = TcpOptionTypeSupported.MaximumSegmentSize, size = (BASE_OPTION_SIZE + 2).toUByte()) {
     override fun toByteArray(order: ByteOrder): ByteArray {
         val buffer = ByteBuffer.allocate(size.toInt())
         buffer.put(super.toByteArray(order))
@@ -84,7 +84,7 @@ data class TCPOptionMaximumSegmentSize(
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(TCPOptionMaximumSegmentSize::class.java)
+        private val logger = LoggerFactory.getLogger(TcpOptionMaximumSegmentSize::class.java)
 
         // note: we use the IPv4 max header length because it is 60, whereas the IPv6 header length
         // is 40. We are leaving some bytes on the table in the case where the IPv4 header doesn't
@@ -92,12 +92,12 @@ data class TCPOptionMaximumSegmentSize(
         val defaultIpv4MSS: UShort = 536u
         val defaultIpv6MSS: UShort = 1220u
 
-        fun maybeMSS(tcpHeader: TCPHeader): TCPOptionMaximumSegmentSize? =
-            tcpHeader.getOptions().find { it.type == TCPOptionTypeSupported.MaximumSegmentSize }
-                as TCPOptionMaximumSegmentSize?
+        fun maybeMSS(tcpHeader: TcpHeader): TcpOptionMaximumSegmentSize? =
+            tcpHeader.getOptions().find { it.type == TcpOptionTypeSupported.MaximumSegmentSize }
+                as TcpOptionMaximumSegmentSize?
 
         fun mssOrDefault(
-            tcpHeader: TCPHeader,
+            tcpHeader: TcpHeader,
             ipv4: Boolean = true,
         ): UShort {
             val mss = maybeMSS(tcpHeader)

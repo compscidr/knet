@@ -1,5 +1,5 @@
 package com.jasonernst.knet.transport.tcp.options
 
-interface TCPOptionType {
+interface TcpOptionType {
     val kind: UByte
 }
