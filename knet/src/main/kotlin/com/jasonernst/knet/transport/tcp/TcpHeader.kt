@@ -56,13 +56,16 @@ data class TcpHeader(
     }
 
     companion object {
+        private val logger = LoggerFactory.getLogger(TcpHeader::class.java)
+
         // we may wish to change this, see this doc:
         // https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/description-tcp-features
-        val DEFAULT_WINDOW_SIZE = 65535.toUShort()
+        const val DEFAULT_WINDOW_SIZE: UShort = 65535u
+        const val BYTES_TO_DATA_OFFSET = 12
 
         // https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/description-tcp-features
-        val OFFSET_MIN: UByte = 5u // min because that's the minimum size of a TCP header
-        val OFFSET_MAX: UByte = 15u // maximum because its a 4-bit field
+        const val OFFSET_MIN: UByte = 5u // min because that's the minimum size of a TCP header
+        const val OFFSET_MAX: UByte = 15u // maximum because its a 4-bit field
         const val TCP_WORD_LENGTH: UByte = 4u
 
         // with no options
@@ -71,18 +74,28 @@ data class TcpHeader(
         fun fromStream(stream: ByteBuffer): TcpHeader {
             val start = stream.position()
             // ensure we have enough bytes to get to the data offset of the header
-            if (stream.remaining() < (OFFSET_MIN * TCP_WORD_LENGTH).toInt()) {
+            if (stream.remaining() < BYTES_TO_DATA_OFFSET + 1) {
                 throw PacketTooShortException(
-                    "Not enough bytes to parse TCP header, expected at least " +
-                        "${OFFSET_MIN * TCP_WORD_LENGTH} but only ${stream.remaining()} available",
+                    "Need at least ${BYTES_TO_DATA_OFFSET + 1} bytes in " +
+                        "stream to determine TCP header length, only have ${stream.remaining()}",
                 )
             }
-
             val sourcePort = stream.short.toUShort()
             val destinationPort = stream.short.toUShort()
             val sequenceNumber = stream.int.toUInt()
             val acknowledgementNumber = stream.int.toUInt()
             val dataOffset = (stream.get().toInt() shr 4 and 0x0F).toUByte()
+
+            val expectedEnd = start + (dataOffset * TCP_WORD_LENGTH).toInt()
+            val expectedRemaining = expectedEnd - stream.position()
+            logger.debug("Expecting $expectedRemaining, have ${stream.remaining()}")
+            if (stream.remaining() < expectedRemaining) {
+                throw PacketTooShortException(
+                    "Expected $expectedRemaining bytes left in TCP header" +
+                        ", only have ${stream.remaining()}",
+                )
+            }
+
             val flags = stream.get()
             val windowSize = stream.short.toUShort()
             val checksum = stream.short.toUShort()
@@ -128,7 +141,7 @@ data class TcpHeader(
         val octetLength = ceil(optionsLength.toDouble() / TCP_WORD_LENGTH.toDouble()).toUInt()
         dataOffset = (OFFSET_MIN + octetLength).toUByte()
 
-        if (dataOffset < OFFSET_MIN || dataOffset > OFFSET_MAX) {
+        if (getDataOffset() < OFFSET_MIN || getDataOffset() > OFFSET_MAX) {
             throw IllegalArgumentException("dataOffset must be between 5 and 15 but is: $dataOffset")
         }
     }
@@ -309,7 +322,7 @@ data class TcpHeader(
      * Header length is the data offset field * the size of TCP words (4 bytes). This is the
      * length of the minimal TCP header (4 words) + the length of the options.
      */
-    override fun getHeaderLength(): UShort = (dataOffset * TCP_WORD_LENGTH).toUShort()
+    override fun getHeaderLength(): UShort = (getDataOffset() * TCP_WORD_LENGTH).toUShort()
 
     override fun toByteArray(order: ByteOrder): ByteArray {
         // logger.debug("TCP HEADER LENGTH: ${getHeaderLength()}")
@@ -325,7 +338,7 @@ data class TcpHeader(
         buffer.putShort(destinationPort.toShort())
         buffer.putInt(sequenceNumber.toInt())
         buffer.putInt(acknowledgementNumber.toInt())
-        val shiftedOffset = (dataOffset.toInt() shl 4).toUByte()
+        val shiftedOffset = (getDataOffset().toInt() shl 4).toUByte()
         buffer.put(shiftedOffset.toByte())
         buffer.put(flags.toByte())
         buffer.putShort(windowSize.toShort())
@@ -345,7 +358,7 @@ data class TcpHeader(
             ", destinationPort=" + Integer.toUnsignedString(destinationPort.toInt() and 0xFFFF) +
             ", sequenceNumber=" + sequenceNumber +
             ", acknowledgementNumber=" + acknowledgementNumber +
-            ", dataOffset=" + Integer.toUnsignedString(dataOffset.toInt()) +
+            ", dataOffset=" + Integer.toUnsignedString(getDataOffset().toInt()) +
             ", cwr=" + cwr +
             ", ece=" + ece +
             ", urg=" + urg +
