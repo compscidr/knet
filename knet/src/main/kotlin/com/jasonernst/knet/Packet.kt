@@ -23,10 +23,11 @@ data class Packet(
             val ipHeader = IPHeader.fromStream(stream)
             val nextHeader = NextHeader.fromStream(stream, ipHeader.protocol)
 
-            if (stream.remaining() < ipHeader.getPayloadLength().toInt()) {
-                throw PacketTooShortException("Packet too short to obtain entire payload")
+            val expectedRemaining = (ipHeader.getPayloadLength() - nextHeader.getHeaderLength()).toInt()
+            if (stream.remaining() < expectedRemaining) {
+                throw PacketTooShortException("Packet too short to obtain entire payload, have ${stream.remaining()}, expecting $expectedRemaining")
             }
-            val payload = ByteArray(ipHeader.getPayloadLength().toInt())
+            val payload = ByteArray(expectedRemaining)
             stream.get(payload)
             return Packet(ipHeader, nextHeader, payload)
         }

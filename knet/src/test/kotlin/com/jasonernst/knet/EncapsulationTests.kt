@@ -148,4 +148,31 @@ class EncapsulationTests {
             )
         encapsulationTest(sourceAddress, destinationAddress, tcpHeader, payload)
     }
+
+    @Test
+    fun packetEncapsulationTest() {
+        val payload = "test".toByteArray()
+        val sourcePort = Random.Default.nextInt(2 * Short.MAX_VALUE - 1)
+        val sourceAddress = InetSocketAddress(InetAddress.getByName("::1"), sourcePort)
+        val destPort = Random.Default.nextInt(2 * Short.MAX_VALUE - 1)
+        val destinationAddress = InetSocketAddress(InetAddress.getByName("::2"), destPort)
+        val tcpHeader =
+            TCPHeader(
+                sourcePort = sourcePort.toUShort(),
+                destinationPort = destPort.toUShort(),
+                sequenceNumber = 100u,
+                acknowledgementNumber = 500u,
+                windowSize = 35000.toUShort(),
+            )
+        val ipHeader = IPHeader.createIPHeader(
+            sourceAddress.address,
+            destinationAddress.address,
+            IPType.TCP,
+            tcpHeader.getHeaderLength().toInt() + payload.size
+        )
+        val packet = Packet(ipHeader, tcpHeader, payload)
+        val stream = ByteBuffer.wrap(packet.toByteArray())
+        val parsedPacket = Packet.fromStream(stream)
+        assertEquals(packet, parsedPacket)
+    }
 }
