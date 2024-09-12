@@ -1,18 +1,25 @@
 package com.jasonernst.knet.tcp.options
 
+import com.jasonernst.knet.PacketTooShortException
 import com.jasonernst.knet.ip.IpHeader
 import com.jasonernst.knet.ip.IpType
 import com.jasonernst.knet.nextheader.NextHeader
 import com.jasonernst.knet.transport.tcp.TcpHeader
+import com.jasonernst.knet.transport.tcp.options.TcpOption
 import com.jasonernst.knet.transport.tcp.options.TcpOption.Companion.parseOptions
 import com.jasonernst.knet.transport.tcp.options.TcpOptionEndOfOptionList
 import com.jasonernst.knet.transport.tcp.options.TcpOptionMaximumSegmentSize
 import com.jasonernst.knet.transport.tcp.options.TcpOptionNoOperation
+import com.jasonernst.knet.transport.tcp.options.TcpOptionTimestamp
 import com.jasonernst.knet.transport.tcp.options.TcpOptionUnsupported
 import com.jasonernst.packetdumper.stringdumper.StringPacketDumper
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
 import java.nio.ByteBuffer
@@ -72,7 +79,7 @@ class TcpOptionTests {
                 acknowledgementNumber = 0x87654321.toUInt(),
                 options =
                     arrayListOf(
-                        TcpOptionEndOfOptionList,
+                        TcpOptionEndOfOptionList(),
                         TcpOptionMaximumSegmentSize(mss = mss),
                         TcpOptionUnsupported(
                             0x03u,
@@ -100,7 +107,9 @@ class TcpOptionTests {
                             0x03u,
                             byteArrayOf(0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08),
                         ),
-                        TcpOptionEndOfOptionList,
+                        TcpOptionTimestamp(tsval = 1u, tsecr = 2u),
+                        TcpOptionNoOperation(),
+                        TcpOptionEndOfOptionList(),
                     ),
             )
 
@@ -110,6 +119,62 @@ class TcpOptionTests {
         val tcpHeaderFromBuffer = TcpHeader.fromStream(buffer)
 
         assertEquals(tcpHeader, tcpHeaderFromBuffer)
+    }
+
+    @Test
+    fun optionMssTooShort() {
+        val options = arrayListOf(TcpOptionMaximumSegmentSize(1222u))
+        val stream = ByteBuffer.allocate(options.sumOf { it.size.toInt() })
+        for (option in options) {
+            stream.put(option.toByteArray())
+        }
+        stream.rewind()
+        stream.limit(stream.limit() - 1)
+        assertThrows<PacketTooShortException> {
+            TcpOption.parseOptions(stream, stream.limit())
+        }
+    }
+
+    @Test
+    fun timeStampsShort() {
+        val options = arrayListOf(TcpOptionTimestamp(1000u, 2000u))
+        val stream = ByteBuffer.allocate(options.sumOf { it.size.toInt() })
+        for (option in options) {
+            stream.put(option.toByteArray())
+        }
+        stream.rewind()
+        stream.limit(stream.limit() - 1)
+        assertThrows<PacketTooShortException> {
+            TcpOption.parseOptions(stream, stream.limit())
+        }
+    }
+
+    @Test
+    fun unsupportedTooShortForLength() {
+        val options = arrayListOf(TcpOptionUnsupported(kind = 88u, ByteArray(0)))
+        val stream = ByteBuffer.allocate(options.sumOf { it.size.toInt() })
+        for (option in options) {
+            stream.put(option.toByteArray())
+        }
+        stream.rewind()
+        stream.limit(stream.limit() - 1)
+        assertThrows<PacketTooShortException> {
+            TcpOption.parseOptions(stream, stream.limit())
+        }
+    }
+
+    @Test
+    fun unsupportedToShortToGetFullLength() {
+        val options = arrayListOf(TcpOptionUnsupported(kind = 88u, ByteArray(1)))
+        val stream = ByteBuffer.allocate(options.sumOf { it.size.toInt() })
+        for (option in options) {
+            stream.put(option.toByteArray())
+        }
+        stream.rewind()
+        stream.limit(stream.limit() - 1)
+        assertThrows<PacketTooShortException> {
+            TcpOption.parseOptions(stream, stream.limit())
+        }
     }
 
     @Test
@@ -129,7 +194,7 @@ class TcpOptionTests {
                             0x03u,
                             byteArrayOf(0x01),
                         ),
-                        TcpOptionEndOfOptionList,
+                        TcpOptionEndOfOptionList(),
                     ),
             )
         tcpHeader.setSyn(true)
@@ -167,7 +232,7 @@ class TcpOptionTests {
         // there were no options and we add one
         // the NOP option is a size of 1 byte, so the data offset should be 1 32-bit word longer
         // because of zero padding
-        tcpHeader.addOption(TcpOptionNoOperation)
+        tcpHeader.addOption(TcpOptionNoOperation())
         assertEquals(tcpHeader.getDataOffset(), (TcpHeader.OFFSET_MIN + 1u).toUByte())
     }
 
@@ -182,7 +247,7 @@ class TcpOptionTests {
                 acknowledgementNumber = 0x87654321u,
                 options =
                     arrayListOf(
-                        TcpOptionNoOperation,
+                        TcpOptionNoOperation(),
                     ),
             )
         // make sure we start with a correct data offset
@@ -224,5 +289,32 @@ class TcpOptionTests {
         assertEquals(2, options.size)
         assertTrue(options[0] is TcpOptionMaximumSegmentSize)
         assertTrue(options[1] is TcpOptionEndOfOptionList)
+    }
+
+    @Disabled("Until we re-write the equals funciton on TcpHeader to discard padding options")
+    @Test
+    fun serializeDeserializeAllOptions() {
+        val options =
+            arrayListOf<TcpOption>(
+                TcpOptionMaximumSegmentSize(1000u),
+                TcpOptionTimestamp(1u, 2u),
+                // TcpOptionUnsupported(88u, ByteArray(0)),
+                // TcpOptionNoOperation(),
+                // TcpOptionEndOfOptionList()
+            )
+        val tcpHeader = TcpHeader(options = options)
+        val stream = ByteBuffer.wrap(tcpHeader.toByteArray())
+        val parsedHeader = TcpHeader.fromStream(stream)
+        assertEquals(tcpHeader, parsedHeader)
+    }
+
+    @Test
+    fun testMaybeTimeStamp() {
+        val tcpHeader = TcpHeader()
+        assertNull(TcpOptionTimestamp.maybeTimestamp(tcpHeader))
+
+        val timestamp = TcpOptionTimestamp(tsval = 1u, tsecr = 2u)
+        val tcpHeader2 = TcpHeader(options = arrayListOf(timestamp))
+        assertNotNull(TcpOptionTimestamp.maybeTimestamp(tcpHeader2))
     }
 }

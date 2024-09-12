@@ -37,17 +37,17 @@ class TcpTests {
     }
 
     @Test fun badDataOffset() {
-        val tcpOptions = arrayListOf(TcpOptionEndOfOptionList)
+        val tcpOptions = arrayListOf(TcpOptionEndOfOptionList())
         val tcpHeader = spyk(TcpHeader(options = tcpOptions))
         every { tcpHeader.getDataOffset() } returns 1u
         assertThrows<IllegalArgumentException> { tcpHeader.toByteArray() }
 
         // too low on update dataoffset
-        assertThrows<IllegalArgumentException> { tcpHeader.addOption(TcpOptionNoOperation) }
+        assertThrows<IllegalArgumentException> { tcpHeader.addOption(TcpOptionNoOperation()) }
 
         // to high on update data offset
         every { tcpHeader.getDataOffset() } returns 20u
-        assertThrows<IllegalArgumentException> { tcpHeader.addOption(TcpOptionNoOperation) }
+        assertThrows<IllegalArgumentException> { tcpHeader.addOption(TcpOptionNoOperation()) }
     }
 
     @Test fun flagsTest() {

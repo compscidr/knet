@@ -38,6 +38,9 @@ enum class TcpOptionTypeSupported(
     TCPAuthenticationOption(29u),
     MultipathCapable(30u),
     TCPFastOpen(34u),
+
+    // fake type we defined for when we don't have the type in the enum
+    Unsupported(99u),
     ;
 
     companion object {

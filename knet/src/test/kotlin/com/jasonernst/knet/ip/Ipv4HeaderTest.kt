@@ -221,7 +221,7 @@ class Ipv4HeaderTest {
                 acknowledgementNumber = 0x87654321.toUInt(),
                 options =
                     arrayListOf(
-                        TcpOptionEndOfOptionList,
+                        TcpOptionEndOfOptionList(),
                     ),
             )
         val tcpHeader2 =
@@ -232,7 +232,7 @@ class Ipv4HeaderTest {
                 acknowledgementNumber = 0x87654321.toUInt(),
                 options =
                     arrayListOf(
-                        TcpOptionEndOfOptionList,
+                        TcpOptionEndOfOptionList(),
                     ),
             )
         val ipHeader =

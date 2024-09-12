@@ -3,11 +3,16 @@ package com.jasonernst.knet.transport.tcp.options
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class TcpOptionUnsupported(
+data class TcpOptionUnsupported(
     val kind: UByte,
     val data: ByteArray,
 ) : TcpOption(
-        type = TcpOptionTypeSupported.fromKind(kind),
+        type =
+            try {
+                TcpOptionTypeSupported.fromKind(kind)
+            } catch (e: NoSuchElementException) {
+                TcpOptionTypeSupported.Unsupported
+            },
         size = (BASE_OPTION_SIZE + data.size).toUByte(),
     ) {
     override fun toByteArray(order: ByteOrder): ByteArray {

@@ -372,4 +372,10 @@ data class TcpHeader(
             ", urgentPointer=" + Integer.toUnsignedString(urgentPointer.toInt() and 0xfff) +
             ", options=" + options +
             '}'
+
+    /*
+    override fun equals(other: Any?): Boolean {
+        // todo re-write equals such that the comparison of options disregards if the only difference
+        //  is NOP or End of Options since its probably just padding on one side
+    }*/
 }

@@ -5,8 +5,8 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 abstract class TcpOption(
-    val type: TcpOptionTypeSupported,
-    val size: UByte,
+    open val type: TcpOptionTypeSupported,
+    open val size: UByte,
 ) {
     companion object {
         const val BASE_OPTION_SIZE = 2
@@ -33,12 +33,12 @@ abstract class TcpOption(
                 if (kind == TcpOptionTypeSupported.EndOfOptionList.kind) {
                     // end of options
                     // logger.debug("End of options")
-                    options.add(TcpOptionEndOfOptionList)
+                    options.add(TcpOptionEndOfOptionList())
                     break
                 } else if (kind == TcpOptionTypeSupported.NoOperation.kind) {
                     // no operation
                     // logger.debug("No operation")
-                    options.add(TcpOptionNoOperation)
+                    options.add(TcpOptionNoOperation())
                 } else if (kind == TcpOptionTypeSupported.MaximumSegmentSize.kind) {
                     if (stream.remaining() < 3) {
                         throw PacketTooShortException(
