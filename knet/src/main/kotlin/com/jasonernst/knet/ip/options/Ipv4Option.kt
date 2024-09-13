@@ -61,6 +61,8 @@ abstract class Ipv4Option(
                     break
                 } else if (kind == Ipv4OptionType.NoOperation.kind) {
                     options.add(Ipv4OptionNoOperation(isCopied, optionClass))
+                } else if (kind == Ipv4OptionType.Security.kind) {
+                    options.add(Ipv4OptionSecurity.fromStream(stream))
                 } else {
                     if (stream.remaining() < 1) {
                         throw PacketTooShortException("Can't determine length of ipv4 option because we have no bytes left")
