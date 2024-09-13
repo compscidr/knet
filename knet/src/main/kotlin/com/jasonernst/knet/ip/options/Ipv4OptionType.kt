@@ -16,7 +16,7 @@ enum class Ipv4OptionType(
     TimeStamp(4u),
 
     // fake type we defined for when we don't have the type in the enum
-    Unknown(99u),
+    Unknown(31u), // max value since this is 5 bits
     ;
 
     companion object {

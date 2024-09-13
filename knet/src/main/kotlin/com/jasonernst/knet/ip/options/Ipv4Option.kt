@@ -1,6 +1,7 @@
 package com.jasonernst.knet.ip.options
 
 import com.jasonernst.knet.PacketTooShortException
+import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -41,16 +42,18 @@ abstract class Ipv4Option(
     open val size: UByte,
 ) {
     companion object {
+        private val logger = LoggerFactory.getLogger(Ipv4Option::class.java)
+
         fun parseOptions(
             stream: ByteBuffer,
-            limit: Int,
+            limit: Int = stream.limit(),
         ): List<Ipv4Option> {
             val options = ArrayList<Ipv4Option>()
             while (stream.position() + 1 <= limit) {
                 val kindOctet = stream.get().toUByte()
                 // high bit is copied flag
                 val isCopied = kindOctet.toInt() and 0b10000000 == 0b10000000
-                val classByte = kindOctet.toInt() and 0b01100000 shr 5
+                val classByte = (kindOctet.toInt() and 0b01100000) shr 5
                 val optionClass = Ipv4OptionClassType.fromKind(classByte.toUByte())
                 val kind = (kindOctet.toInt() and 0b00011111).toUByte()
                 if (kind == Ipv4OptionType.EndOfOptionList.kind) {
@@ -62,12 +65,14 @@ abstract class Ipv4Option(
                     if (stream.remaining() < 1) {
                         throw PacketTooShortException("Can't determine length of ipv4 option because we have no bytes left")
                     }
-                    // this length includes the previous two bytes
-                    val length = (stream.get().toUByte() - 2u).toUByte()
-                    if (stream.remaining() < length.toInt()) {
+                    // this length includes the previous two bytes which is why we need adjustment
+                    // we don't apply it directly to length because we want to construct the option
+                    // with the correct length which includes the first two fields
+                    val length = (stream.get().toUByte())
+                    if (stream.remaining() < length.toInt() - 2) {
                         throw PacketTooShortException("Can't parse ipv4 option because we don't have enough bytes left for the data")
                     }
-                    val data = ByteArray(length.toInt())
+                    val data = ByteArray(length.toInt() - 2)
                     stream.get(data)
 
                     val type =
@@ -84,7 +89,10 @@ abstract class Ipv4Option(
     }
 
     open fun toByteArray(order: ByteOrder = ByteOrder.BIG_ENDIAN): ByteArray {
-        val typeInt = isCopied.toInt() shl 7 or (optionClass.kind.toInt() shl 5) or type.kind.toInt()
-        return byteArrayOf(typeInt.toByte())
+        val copiedInt = (isCopied.toInt() shl 7)
+        val classInt = optionClass.kind.toInt() shl 5
+        val typeInt = type.kind.toInt()
+        val typeByte = (copiedInt + classInt + typeInt).toByte()
+        return byteArrayOf(typeByte)
     }
 }
