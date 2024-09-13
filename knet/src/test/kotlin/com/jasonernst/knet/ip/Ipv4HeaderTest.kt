@@ -304,14 +304,4 @@ class Ipv4HeaderTest {
             Ipv4Header.fromStream(buffer)
         }
     }
-
-    // this is only a temp test until we properly implement ipv4 options
-    @Test fun testOptionDropping() {
-        val ipv4Packet = Ipv4Header(ihl = 6u)
-        logger.debug("IPv4 packet: {}", ipv4Packet)
-        val buffer = ByteBuffer.wrap(ipv4Packet.toByteArray())
-        val parsedPacket = IpHeader.fromStream(buffer)
-        assertEquals(0u, buffer.remaining().toUInt())
-        assertEquals(ipv4Packet, parsedPacket)
-    }
 }

@@ -3,6 +3,8 @@ package com.jasonernst.knet.ip
 import com.jasonernst.icmp_common.Checksum
 import com.jasonernst.knet.PacketTooShortException
 import com.jasonernst.knet.ip.IpHeader.Companion.IP4_VERSION
+import com.jasonernst.knet.ip.options.Ipv4Option
+import com.jasonernst.knet.ip.options.Ipv4Option.Companion.parseOptions
 import org.slf4j.LoggerFactory
 import java.net.Inet4Address
 import java.net.InetAddress
@@ -47,6 +49,7 @@ data class Ipv4Header(
     override val sourceAddress: InetAddress = Inet4Address.getLocalHost(),
     // 32-bits, destination address
     override val destinationAddress: InetAddress = Inet4Address.getLocalHost(),
+    val options: List<Ipv4Option> = emptyList(),
 ) : IpHeader {
     // 3-bits: set from mayFragment and lastFragment
     // bit 0: Reserved; must be zero
@@ -62,6 +65,15 @@ data class Ipv4Header(
             flag = flag or 0x20
         }
 
+        // dummy check that ihl matches the options length
+        val optionsLength = options.sumOf { it.size.toInt() }.toUInt()
+        if (ihl * IP4_WORD_LENGTH != (IP4_MIN_HEADER_LENGTH + optionsLength).toUByte().toUInt()) {
+            val expectedIHL = ((IP4_MIN_HEADER_LENGTH + optionsLength) / IP4_WORD_LENGTH).toUByte()
+            throw IllegalArgumentException(
+                "Invalid IPv4 header. IHL does not match the options length, IHL should be $expectedIHL, but was $ihl because options length was $optionsLength",
+            )
+        }
+
         // calculate the checksum for packet creation based on the set fields
         if (headerChecksum == 0u.toUShort()) {
             logger.debug("Calculating checksum for IPv4 header")
@@ -69,15 +81,15 @@ data class Ipv4Header(
             // ^ this will compute the checksum and put it in the buffer
             // note: it's tempting to call the checksum function here but if we do we'll get a zero
             // checksum because the field hasn't been zero'd out after the toByteArray call.
-            headerChecksum = ByteBuffer.wrap(buffer).getShort(10).toUShort()
+            headerChecksum = ByteBuffer.wrap(buffer).getShort(CHECKSUM_OFFSET).toUShort()
         }
     }
 
     companion object {
         private val logger = LoggerFactory.getLogger(Ipv4Header::class.java)
+        private const val CHECKSUM_OFFSET = 10
         const val IP4_WORD_LENGTH: UByte = 4u
         val IP4_MIN_HEADER_LENGTH: UByte = (IP4_WORD_LENGTH * 5u).toUByte()
-        const val IP4_MAX_HEADER_LENGTH: UByte = 60u
 
         fun fromStream(stream: ByteBuffer): Ipv4Header {
             val start = stream.position()
@@ -99,7 +111,7 @@ data class Ipv4Header(
             // ensure we have enough capacity in the stream to parse out a full header
             val ihl: UByte = (versionAndHeaderLength.toInt() and 0x0F).toUByte()
             val headerAvailable = stream.limit() - start
-            if (headerAvailable < (ihl * 4u).toInt()) {
+            if (headerAvailable < (ihl * IP4_WORD_LENGTH).toInt()) {
                 throw PacketTooShortException(
                     "Not enough space in stream for IPv4 header, expected ${ihl * 4u} but only have $headerAvailable",
                 )
@@ -125,13 +137,15 @@ data class Ipv4Header(
             stream[destination]
             val destinationAddress = Inet4Address.getByAddress(destination) as Inet4Address
 
-            // todo (compscidr): parse the options field instead of just dropping them
-            logger.debug("POS: ${stream.position()}, remaining: ${stream.remaining()}")
-            if (ihl > 5u) {
-                logger.debug("Dropping IP options")
-                stream.position(stream.position() + ((ihl - 5u) * 4u).toInt())
+            // make sure we don't process into a second packet
+            val limitOfPacket = start + (ihl * IP4_WORD_LENGTH).toInt()
+            val expectedRemaining = limitOfPacket - start - IP4_MIN_HEADER_LENGTH.toInt()
+            if (stream.remaining() < expectedRemaining) {
+                throw PacketTooShortException(
+                    "Not enough data in stream to parse Ipv4 options, expecting $expectedRemaining, have ${stream.remaining()}",
+                )
             }
-            logger.debug("POS: ${stream.position()}, remaining: ${stream.remaining()}")
+            val options = parseOptions(stream, limitOfPacket)
 
             return Ipv4Header(
                 ihl = ihl,
@@ -147,6 +161,7 @@ data class Ipv4Header(
                 headerChecksum = checksum,
                 sourceAddress = sourceAddress,
                 destinationAddress = destinationAddress,
+                options = options,
             )
         }
     }
@@ -174,11 +189,14 @@ data class Ipv4Header(
         buffer.putShort(0) // zero-out checksum
         buffer.put(sourceAddress.address)
         buffer.put(destinationAddress.address)
+        for (option in options) {
+            buffer.put(option.toByteArray())
+        }
         buffer.rewind()
 
-        // compute checksum and write over the value
+        // compute checksum and write over the zero value
         val ipChecksum = Checksum.calculateChecksum(buffer)
-        buffer.putShort(10, ipChecksum.toShort())
+        buffer.putShort(CHECKSUM_OFFSET, ipChecksum.toShort())
 
         return buffer.array()
     }
