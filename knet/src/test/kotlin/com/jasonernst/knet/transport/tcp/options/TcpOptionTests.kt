@@ -348,4 +348,20 @@ class TcpOptionTests {
         val option2 = TcpOptionUnsupported(1u, ByteArray(0))
         assertEquals("TCPOptionUnsupported(NoOperation, kind=1, size=2, data=[])", option2.toString())
     }
+
+    @Test
+    fun tcpMssOrDefault() {
+        val tcpHeader = TcpHeader()
+        assertEquals(TcpOptionMaximumSegmentSize.mssOrDefault(tcpHeader), TcpOptionMaximumSegmentSize.defaultIpv4MSS)
+        assertEquals(TcpOptionMaximumSegmentSize.mssOrDefault(tcpHeader, false), TcpOptionMaximumSegmentSize.defaultIpv6MSS)
+
+        val mss = TcpOptionMaximumSegmentSize(1000u)
+        val tcpHeader2 = TcpHeader(options = arrayListOf(mss))
+        assertEquals(1000u.toUShort(), TcpOptionMaximumSegmentSize.mssOrDefault(tcpHeader2))
+    }
+
+    @Test fun tcpMSSToString() {
+        val mss = TcpOptionMaximumSegmentSize(1000u)
+        assertEquals("TCPOptionMaximumSegmentSize(kind=2 size=4 mss=1000)", mss.toString())
+    }
 }
