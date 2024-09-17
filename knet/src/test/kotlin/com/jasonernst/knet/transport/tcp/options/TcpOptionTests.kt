@@ -14,6 +14,7 @@ import com.jasonernst.knet.transport.tcp.options.TcpOptionTimestamp
 import com.jasonernst.knet.transport.tcp.options.TcpOptionUnsupported
 import com.jasonernst.packetdumper.stringdumper.StringPacketDumper
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -316,5 +317,35 @@ class TcpOptionTests {
         val timestamp = TcpOptionTimestamp(tsval = 1u, tsecr = 2u)
         val tcpHeader2 = TcpHeader(options = arrayListOf(timestamp))
         assertNotNull(TcpOptionTimestamp.maybeTimestamp(tcpHeader2))
+    }
+
+    @Test
+    fun tcpOptionUnsupportedEquals() {
+        val option1 = TcpOptionUnsupported(88u, ByteArray(0))
+        val option2 = TcpOptionUnsupported(88u, ByteArray(0))
+        assertEquals(option1, option2)
+
+        val option3 = TcpOptionUnsupported(88u, ByteArray(1))
+        assertNotEquals(option1, option3)
+
+        val option4 = TcpOptionNoOperation()
+        assertNotEquals(option1, option4)
+    }
+
+    @Test
+    fun tcpOptionUnsupportedHashCode() {
+        val map: MutableMap<TcpOptionUnsupported, String> = mutableMapOf()
+        val option = TcpOptionUnsupported(88u, ByteArray(0))
+        map[option] = "test"
+        assertTrue(map.containsKey(option))
+    }
+
+    @Test
+    fun tcpOptionUnsupportedToString() {
+        val option = TcpOptionUnsupported(88u, ByteArray(0))
+        assertEquals("TCPOptionUnsupported(Unknown, kind=88, size=2, data=[])", option.toString())
+
+        val option2 = TcpOptionUnsupported(1u, ByteArray(0))
+        assertEquals("TCPOptionUnsupported(NoOperation, kind=1, size=2, data=[])", option2.toString())
     }
 }
