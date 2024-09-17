@@ -79,6 +79,18 @@ abstract class Ipv4Option(
                         Ipv4OptionType.LooseSourceRouting.kind -> {
                             options.add(Ipv4OptionLooseSourceAndRecordRoute.fromStream(stream, isCopied, optionClass, length))
                         }
+                        Ipv4OptionType.StrictSourceRouting.kind -> {
+                            options.add(Ipv4OptionStrictSourceAndRecordRoute.fromStream(stream, isCopied, optionClass, length))
+                        }
+                        Ipv4OptionType.RecordRoute.kind -> {
+                            options.add(Ipv4OptionRecordRoute.fromStream(stream, isCopied, optionClass, length))
+                        }
+                        Ipv4OptionType.StreamId.kind -> {
+                            options.add(Ipv4OptionStreamIdentifier.fromStream(stream, isCopied, optionClass, length))
+                        }
+                        Ipv4OptionType.TimeStamp.kind -> {
+                            options.add(Ipv4OptionInternetTimestamp.fromStream(stream, isCopied, optionClass, length))
+                        }
                         else -> {
                             val data = ByteArray(length.toInt() - 2)
                             stream.get(data)

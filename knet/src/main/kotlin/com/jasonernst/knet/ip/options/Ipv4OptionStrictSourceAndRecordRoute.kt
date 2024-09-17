@@ -8,8 +8,8 @@ import java.nio.ByteOrder
 /**
  * From RFC 791:
  *
- * The loose source and record route (LSRR) option provides a means
- * for the source of an internet datagram to supply routing
+ * The strict source and record route (SSRR) option provides a
+ * means for the source of an internet datagram to supply routing
  * information to be used by the gateways in forwarding the
  * datagram to the destination, and to record the route
  * information.
@@ -28,23 +28,23 @@ import java.nio.ByteOrder
  * recorded route full) and the routing is to be based on the
  * destination address field.
  */
-data class Ipv4OptionLooseSourceAndRecordRoute(
+data class Ipv4OptionStrictSourceAndRecordRoute(
     override val isCopied: Boolean = true,
     override val optionClass: Ipv4OptionClassType = Ipv4OptionClassType.Control,
-    override val type: Ipv4OptionType = Ipv4OptionType.LooseSourceRouting,
+    override val type: Ipv4OptionType = Ipv4OptionType.StrictSourceRouting,
     val pointer: UByte,
     val routeData: ByteArray = ByteArray(0),
-) : Ipv4Option(isCopied = isCopied, optionClass = optionClass, type = type, size = (routeData.size.toUByte() + MIN_OPTION_SIZE).toUByte()) {
+) : Ipv4Option(isCopied, optionClass, type, size = (routeData.size.toUByte() + MIN_OPTION_SIZE).toUByte()) {
     companion object {
         val MIN_OPTION_SIZE: UByte = 3u
-        private val logger = LoggerFactory.getLogger(Ipv4OptionLooseSourceAndRecordRoute::class.java)
+        private val logger = LoggerFactory.getLogger(Ipv4OptionStrictSourceAndRecordRoute::class.java)
 
         fun fromStream(
             stream: ByteBuffer,
             isCopied: Boolean,
             optionClass: Ipv4OptionClassType,
             size: UByte,
-        ): Ipv4OptionLooseSourceAndRecordRoute {
+        ): Ipv4OptionStrictSourceAndRecordRoute {
             logger.debug("SIZE: $size, remaining: ${stream.remaining()}")
             if (stream.remaining() < (size - 2u).toInt()) {
                 throw PacketTooShortException(
@@ -57,7 +57,7 @@ data class Ipv4OptionLooseSourceAndRecordRoute(
             val dataLength = size.toInt() - MIN_OPTION_SIZE.toInt()
             val routingData = ByteArray(dataLength)
             stream.get(routingData)
-            return Ipv4OptionLooseSourceAndRecordRoute(
+            return Ipv4OptionStrictSourceAndRecordRoute(
                 isCopied = isCopied,
                 optionClass = optionClass,
                 pointer = pointer,
@@ -81,7 +81,7 @@ data class Ipv4OptionLooseSourceAndRecordRoute(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as Ipv4OptionLooseSourceAndRecordRoute
+        other as Ipv4OptionStrictSourceAndRecordRoute
 
         if (isCopied != other.isCopied) return false
         if (optionClass != other.optionClass) return false
