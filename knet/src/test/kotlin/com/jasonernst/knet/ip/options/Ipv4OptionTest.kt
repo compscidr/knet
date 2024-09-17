@@ -47,11 +47,11 @@ class Ipv4OptionTest {
         assertTrue(parsedOptions[0] is Ipv4OptionUnknown)
 
         // unhandled option, not in list
-        val stream2 = ByteBuffer.wrap(byteArrayOf(0x02.toByte(), 0x04, 0x00, 0x00))
+        val stream2 = ByteBuffer.wrap(byteArrayOf(0x11.toByte(), 0x04, 0x00, 0x00))
         val parsedOptions2 = Ipv4Option.parseOptions(stream2, 4)
         assertTrue(parsedOptions2[0] is Ipv4OptionUnknown)
 
-        // unknown option good path (failing for some reason)
+        // unknown option good path
         val unhandledOption =
             Ipv4OptionUnknown(isCopied = true, optionClass = Ipv4OptionClassType.DebuggingAndMeasurement, type = Ipv4OptionType.Unknown)
         val stream3 = ByteBuffer.wrap(unhandledOption.toByteArray())
