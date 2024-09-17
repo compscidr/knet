@@ -1,6 +1,7 @@
 package com.jasonernst.knet.ip.options
 
 import com.jasonernst.knet.PacketTooShortException
+import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -21,32 +22,38 @@ import java.nio.ByteOrder
  * recorded route full) and the routing is to be based on the
  * destination address field.
  */
-class Ipv4OptionLooseSourceAndRecordRoute(
+data class Ipv4OptionLooseSourceAndRecordRoute(
     override val isCopied: Boolean = true,
     override val optionClass: Ipv4OptionClassType = Ipv4OptionClassType.Control,
     override val type: Ipv4OptionType = Ipv4OptionType.LooseSourceRouting,
-    override val size: UByte = MIN_OPTION_SIZE,
     val pointer: UByte,
     val routeData: ByteArray = ByteArray(0),
-) : Ipv4Option(isCopied, optionClass, type, size) {
+) : Ipv4Option(isCopied, optionClass, type, size = (routeData.size.toUByte() + MIN_OPTION_SIZE).toUByte()) {
     companion object {
         val MIN_OPTION_SIZE: UByte = 3u
+        private val logger = LoggerFactory.getLogger(Ipv4OptionLooseSourceAndRecordRoute::class.java)
 
         fun fromStream(
             stream: ByteBuffer,
-            dataLength: Int,
+            isCopied: Boolean,
+            optionClass: Ipv4OptionClassType,
+            size: UByte,
         ): Ipv4OptionLooseSourceAndRecordRoute {
-            if (stream.remaining() < MIN_OPTION_SIZE.toInt() - 2) {
+            logger.debug("SIZE: $size, remaining: ${stream.remaining()}")
+            if (stream.remaining() < (size - 2u).toInt()) {
                 throw PacketTooShortException(
-                    "Stream must have at least ${MIN_OPTION_SIZE - 2u} " +
+                    "Stream must have at least ${size - 2u} " +
                         "remaining bytes remaining to parse Ipv4OptionLooseSourceAndRecordRoute, we only have " +
                         "${stream.remaining()} bytes",
                 )
             }
             val pointer = stream.get().toUByte()
+            val dataLength = size.toInt() - MIN_OPTION_SIZE.toInt()
             val routingData = ByteArray(dataLength)
             stream.get(routingData)
             return Ipv4OptionLooseSourceAndRecordRoute(
+                isCopied = isCopied,
+                optionClass = optionClass,
                 pointer = pointer,
                 routeData = routingData,
             )
@@ -62,5 +69,29 @@ class Ipv4OptionLooseSourceAndRecordRoute(
                 .put(pointer.toByte())
                 .put(routeData)
         return buffer.array()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Ipv4OptionLooseSourceAndRecordRoute
+
+        if (isCopied != other.isCopied) return false
+        if (optionClass != other.optionClass) return false
+        if (type != other.type) return false
+        if (pointer != other.pointer) return false
+        if (!routeData.contentEquals(other.routeData)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = isCopied.hashCode()
+        result = 31 * result + optionClass.hashCode()
+        result = 31 * result + type.hashCode()
+        result = 31 * result + pointer.hashCode()
+        result = 31 * result + routeData.contentHashCode()
+        return result
     }
 }

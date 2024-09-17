@@ -167,4 +167,43 @@ class Ipv4OptionTest {
             Ipv4Option.parseOptions(stream)
         }
     }
+
+    @Test
+    fun ipv4OptionLooseSourceAndRecordRoute() {
+        val option = Ipv4OptionLooseSourceAndRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        val stream = ByteBuffer.wrap(option.toByteArray())
+        logger.debug("Stream length: ${stream.limit()}")
+        val parsedOptions = Ipv4Option.parseOptions(stream)
+        assertEquals(1, parsedOptions.size)
+        assertEquals(option, parsedOptions[0])
+    }
+
+    @Test fun ipv4OptionLooseSourceAndRecordRouteTooShort() {
+        val option = Ipv4OptionLooseSourceAndRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        val stream = ByteBuffer.wrap(option.toByteArray())
+        stream.limit(stream.limit() - 1)
+        stream.position(2)
+        assertThrows<PacketTooShortException> {
+            Ipv4OptionLooseSourceAndRecordRoute.fromStream(stream, true, Ipv4OptionClassType.DebuggingAndMeasurement, 6u)
+        }
+    }
+
+    @Test fun ipv4OptionLooseSourceAndRecordRouteEquals() {
+        val option1 = Ipv4OptionLooseSourceAndRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        val option2 = Ipv4OptionLooseSourceAndRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        assertEquals(option1, option2)
+
+        val option3 = Ipv4OptionLooseSourceAndRecordRoute(pointer = 1u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        assertNotEquals(option1, option3)
+
+        val option4 = Ipv4OptionLooseSourceAndRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x03))
+        assertNotEquals(option1, option4)
+    }
+
+    @Test fun ipv4OptionLooseSourceAndRecordRouteHashCode() {
+        val map: MutableMap<Ipv4OptionLooseSourceAndRecordRoute, String> = mutableMapOf()
+        val option1 = Ipv4OptionLooseSourceAndRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        map[option1] = "test"
+        assertTrue(map.containsKey(option1))
+    }
 }

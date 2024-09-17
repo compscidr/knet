@@ -69,22 +69,28 @@ abstract class Ipv4Option(
                     // we don't apply it directly to length because we want to construct the option
                     // with the correct length which includes the first two fields
                     val length = stream.get().toUByte()
-                    if (kind == Ipv4OptionType.Security.kind) {
-                        options.add(Ipv4OptionSecurity.fromStream(stream, isCopied, optionClass, length))
-                    } else {
-                        if (stream.remaining() < length.toInt() - 2) {
-                            throw PacketTooShortException("Can't parse ipv4 option because we don't have enough bytes left for the data")
+                    if (stream.remaining() < length.toInt() - 2) {
+                        throw PacketTooShortException("Can't parse ipv4 option because we don't have enough bytes left for the data")
+                    }
+                    when (kind) {
+                        Ipv4OptionType.Security.kind -> {
+                            options.add(Ipv4OptionSecurity.fromStream(stream, isCopied, optionClass, length))
                         }
-                        val data = ByteArray(length.toInt() - 2)
-                        stream.get(data)
+                        Ipv4OptionType.LooseSourceRouting.kind -> {
+                            options.add(Ipv4OptionLooseSourceAndRecordRoute.fromStream(stream, isCopied, optionClass, length))
+                        }
+                        else -> {
+                            val data = ByteArray(length.toInt() - 2)
+                            stream.get(data)
 
-                        val type =
-                            try {
-                                Ipv4OptionType.fromKind(kind)
-                            } catch (e: NoSuchElementException) {
-                                Ipv4OptionType.Unknown
-                            }
-                        options.add(Ipv4OptionUnknown(isCopied, optionClass, type, length, data))
+                            val type =
+                                try {
+                                    Ipv4OptionType.fromKind(kind)
+                                } catch (e: NoSuchElementException) {
+                                    Ipv4OptionType.Unknown
+                                }
+                            options.add(Ipv4OptionUnknown(isCopied, optionClass, type, length, data))
+                        }
                     }
                 }
             }

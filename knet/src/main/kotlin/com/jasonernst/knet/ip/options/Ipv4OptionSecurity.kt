@@ -78,6 +78,7 @@ data class Ipv4OptionSecurity(
     override fun toByteArray(order: ByteOrder): ByteArray {
         logger.debug("SIZE: $size")
         val buffer = ByteBuffer.allocate(size.toInt())
+        buffer.order(order)
         buffer.put(super.toByteArray(order))
         buffer.putShort(security.kind.toShort())
         buffer.putShort(compartment.toShort())
