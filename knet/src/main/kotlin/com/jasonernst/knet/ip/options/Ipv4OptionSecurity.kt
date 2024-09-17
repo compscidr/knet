@@ -1,5 +1,7 @@
 package com.jasonernst.knet.ip.options
 
+import com.jasonernst.knet.PacketTooShortException
+import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -38,11 +40,17 @@ data class Ipv4OptionSecurity(
     val tcc: UInt = 0u, // even though we 32 bits, this field is actually 24...whyyyyy.
 ) : Ipv4Option(isCopied, optionClass, type, size) {
     companion object {
+        private val logger = LoggerFactory.getLogger(javaClass)
         val OPTION_SIZE: UByte = 11u
 
-        fun fromStream(stream: ByteBuffer): Ipv4OptionSecurity {
+        fun fromStream(
+            stream: ByteBuffer,
+            isCopied: Boolean,
+            optionClass: Ipv4OptionClassType,
+            size: UByte,
+        ): Ipv4OptionSecurity {
             if (stream.remaining() < OPTION_SIZE.toInt() - 2) {
-                throw IllegalArgumentException(
+                throw PacketTooShortException(
                     "Stream must have at least ${OPTION_SIZE - 2u} " +
                         "remaining bytes remaining to parse Ipv4OptionSecurity, we only have " +
                         "${stream.remaining()} bytes",
@@ -54,7 +62,11 @@ data class Ipv4OptionSecurity(
             val tccHighByte = stream.get().toUInt() shl 16
             val tccLowWord = stream.getShort().toUInt()
             val tcc = tccHighByte.toInt() or tccLowWord.toInt()
+            logger.debug("Stream position: ${stream.position()} remaining: ${stream.remaining()}")
             return Ipv4OptionSecurity(
+                isCopied = isCopied,
+                optionClass = optionClass,
+                size = size,
                 security = security,
                 compartment = compartment,
                 handlingRestrictions = handlingRestrictions,
@@ -64,6 +76,7 @@ data class Ipv4OptionSecurity(
     }
 
     override fun toByteArray(order: ByteOrder): ByteArray {
+        logger.debug("SIZE: $size")
         val buffer = ByteBuffer.allocate(size.toInt())
         buffer.put(super.toByteArray(order))
         buffer.putShort(security.kind.toShort())

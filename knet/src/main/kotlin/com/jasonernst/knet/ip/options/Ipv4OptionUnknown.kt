@@ -17,7 +17,6 @@ data class Ipv4OptionUnknown(
     override fun toByteArray(order: ByteOrder): ByteArray {
         val buffer = ByteBuffer.allocate(MINIMUM_SIZE.toInt() + data.size)
         buffer.put(super.toByteArray(order)) // get the type byte sorted out
-        buffer.put(size.toByte())
         buffer.put(data)
         return buffer.array()
     }

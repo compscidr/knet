@@ -65,6 +65,11 @@ class Ipv4OptionTest {
         assertThrows<PacketTooShortException> {
             Ipv4Option.parseOptions(stream)
         }
+
+        val option = Ipv4OptionUnknown(size = 0u)
+        assertThrows<IllegalArgumentException> {
+            option.toByteArray()
+        }
     }
 
     @Test fun unknownOptionTooShortLengthOk() {
@@ -125,5 +130,41 @@ class Ipv4OptionTest {
             Ipv4OptionUnknown(isCopied = true, optionClass = Ipv4OptionClassType.DebuggingAndMeasurement, type = Ipv4OptionType.Unknown)
         map[option1] = "test"
         assertTrue(map.containsKey(option1))
+    }
+
+    @Test fun ipv4OptionSecurity() {
+        val option =
+            Ipv4OptionSecurity(
+                isCopied = true,
+                optionClass = Ipv4OptionClassType.DebuggingAndMeasurement,
+                type = Ipv4OptionType.Security,
+                security = Ipv4OptionSecurityType.Confidential,
+                compartment = 1234u,
+                handlingRestrictions = 5678u,
+                tcc = 9102u,
+            )
+        val stream = ByteBuffer.wrap(option.toByteArray())
+        logger.debug("Stream size: ${stream.limit()}")
+        val parsedOptions = Ipv4Option.parseOptions(stream)
+        assertEquals(1, parsedOptions.size)
+        assertEquals(option, parsedOptions[0])
+    }
+
+    @Test fun ipv4OptionSecurityTooShort() {
+        val option =
+            Ipv4OptionSecurity(
+                isCopied = true,
+                optionClass = Ipv4OptionClassType.DebuggingAndMeasurement,
+                type = Ipv4OptionType.Security,
+                security = Ipv4OptionSecurityType.Confidential,
+                compartment = 1234u,
+                handlingRestrictions = 5678u,
+                tcc = 9102u,
+            )
+        val stream = ByteBuffer.wrap(option.toByteArray())
+        stream.limit(stream.limit() - 1)
+        assertThrows<PacketTooShortException> {
+            Ipv4Option.parseOptions(stream)
+        }
     }
 }

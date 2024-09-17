@@ -61,8 +61,6 @@ abstract class Ipv4Option(
                     break
                 } else if (kind == Ipv4OptionType.NoOperation.kind) {
                     options.add(Ipv4OptionNoOperation(isCopied, optionClass))
-                } else if (kind == Ipv4OptionType.Security.kind) {
-                    options.add(Ipv4OptionSecurity.fromStream(stream))
                 } else {
                     if (stream.remaining() < 1) {
                         throw PacketTooShortException("Can't determine length of ipv4 option because we have no bytes left")
@@ -70,20 +68,24 @@ abstract class Ipv4Option(
                     // this length includes the previous two bytes which is why we need adjustment
                     // we don't apply it directly to length because we want to construct the option
                     // with the correct length which includes the first two fields
-                    val length = (stream.get().toUByte())
-                    if (stream.remaining() < length.toInt() - 2) {
-                        throw PacketTooShortException("Can't parse ipv4 option because we don't have enough bytes left for the data")
-                    }
-                    val data = ByteArray(length.toInt() - 2)
-                    stream.get(data)
-
-                    val type =
-                        try {
-                            Ipv4OptionType.fromKind(kind)
-                        } catch (e: NoSuchElementException) {
-                            Ipv4OptionType.Unknown
+                    val length = stream.get().toUByte()
+                    if (kind == Ipv4OptionType.Security.kind) {
+                        options.add(Ipv4OptionSecurity.fromStream(stream, isCopied, optionClass, length))
+                    } else {
+                        if (stream.remaining() < length.toInt() - 2) {
+                            throw PacketTooShortException("Can't parse ipv4 option because we don't have enough bytes left for the data")
                         }
-                    options.add(Ipv4OptionUnknown(isCopied, optionClass, type, length, data))
+                        val data = ByteArray(length.toInt() - 2)
+                        stream.get(data)
+
+                        val type =
+                            try {
+                                Ipv4OptionType.fromKind(kind)
+                            } catch (e: NoSuchElementException) {
+                                Ipv4OptionType.Unknown
+                            }
+                        options.add(Ipv4OptionUnknown(isCopied, optionClass, type, length, data))
+                    }
                 }
             }
             return options
@@ -91,10 +93,19 @@ abstract class Ipv4Option(
     }
 
     open fun toByteArray(order: ByteOrder = ByteOrder.BIG_ENDIAN): ByteArray {
+        if (size.toInt() < 1) {
+            throw IllegalArgumentException("Size must be at least 1")
+        }
         val copiedInt = (isCopied.toInt() shl 7)
         val classInt = optionClass.kind.toInt() shl 5
         val typeInt = type.kind.toInt()
         val typeByte = (copiedInt + classInt + typeInt).toByte()
-        return byteArrayOf(typeByte)
+        if (size.toInt() == 1) {
+            return byteArrayOf(typeByte)
+        }
+        val buffer = ByteBuffer.allocate(2)
+        buffer.put(typeByte)
+        buffer.put(size.toByte())
+        return buffer.array()
     }
 }
