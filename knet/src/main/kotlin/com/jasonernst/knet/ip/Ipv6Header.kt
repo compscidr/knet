@@ -72,7 +72,7 @@ data class Ipv6Header(
             val destinationBuffer = ByteArray(16)
             stream[destinationBuffer]
             val destinationAddress = Inet6Address.getByAddress(destinationBuffer) as Inet6Address
-            val options = Ipv6ExtensionHeader.fromStream(stream, IpType.fromValue(protocol))
+            val extensionHeaders = Ipv6ExtensionHeader.fromStream(stream, IpType.fromValue(protocol))
 
             return Ipv6Header(
                 ipVersion,
@@ -83,7 +83,7 @@ data class Ipv6Header(
                 hopLimit,
                 sourceAddress,
                 destinationAddress,
-                options,
+                extensionHeaders,
             )
         }
     }

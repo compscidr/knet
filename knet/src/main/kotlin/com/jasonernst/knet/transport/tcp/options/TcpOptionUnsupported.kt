@@ -46,7 +46,7 @@ data class TcpOptionUnsupported(
         val kindString =
             try {
                 TcpOptionTypeSupported.fromKind(kind).toString()
-            } catch (e: IllegalArgumentException) {
+            } catch (e: NoSuchElementException) {
                 "Unknown"
             }
         return "TCPOptionUnsupported($kindString, kind=$kind, size=$size, data=${data.contentToString()})"
