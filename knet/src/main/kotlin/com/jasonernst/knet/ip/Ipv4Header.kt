@@ -11,6 +11,7 @@ import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.experimental.or
+import kotlin.math.ceil
 
 /**
  * Internet Protocol Version 4 Header Implementation.
@@ -67,8 +68,8 @@ data class Ipv4Header(
 
         // dummy check that ihl matches the options length
         val optionsLength = options.sumOf { it.size.toInt() }.toUInt()
-        if (ihl * IP4_WORD_LENGTH != (IP4_MIN_HEADER_LENGTH + optionsLength).toUByte().toUInt()) {
-            val expectedIHL = ((IP4_MIN_HEADER_LENGTH + optionsLength) / IP4_WORD_LENGTH).toUByte()
+        val expectedIHL = ceil((IP4_MIN_HEADER_LENGTH.toDouble() + optionsLength.toDouble()) / IP4_WORD_LENGTH.toDouble()).toUInt()
+        if (ihl.toUInt() != expectedIHL) {
             throw IllegalArgumentException(
                 "Invalid IPv4 header. IHL does not match the options length, IHL should be $expectedIHL, but was $ihl because options length was $optionsLength",
             )
@@ -139,12 +140,6 @@ data class Ipv4Header(
 
             // make sure we don't process into a second packet
             val limitOfPacket = start + (ihl * IP4_WORD_LENGTH).toInt()
-            val expectedRemaining = limitOfPacket - start - IP4_MIN_HEADER_LENGTH.toInt()
-            if (stream.remaining() < expectedRemaining) {
-                throw PacketTooShortException(
-                    "Not enough data in stream to parse Ipv4 options, expecting $expectedRemaining, have ${stream.remaining()}",
-                )
-            }
             val options = parseOptions(stream, limitOfPacket)
 
             return Ipv4Header(

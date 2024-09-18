@@ -1,6 +1,8 @@
 package com.jasonernst.knet.ip.options
 
 import com.jasonernst.knet.PacketTooShortException
+import com.jasonernst.knet.ip.Ipv4Header
+import com.jasonernst.knet.transport.tcp.options.TcpOptionNoOperation
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -28,6 +30,31 @@ class Ipv4OptionTest {
         assertEquals(options, parsedOptions)
     }
 
+    @Test fun mismatchedOptionsLengthIhl() {
+        val options =
+            arrayListOf(
+                Ipv4OptionNoOperation(true, Ipv4OptionClassType.Control),
+                Ipv4OptionEndOfOptionList(true, Ipv4OptionClassType.Control),
+            )
+        assertThrows<IllegalArgumentException> {
+            Ipv4Header(options = options)
+        }
+    }
+
+    @Test fun correctOptionsLengthButTooShort() {
+        val options =
+            arrayListOf(
+                Ipv4OptionNoOperation(true, Ipv4OptionClassType.Control),
+                Ipv4OptionEndOfOptionList(true, Ipv4OptionClassType.Control),
+            )
+        val ipHeader = Ipv4Header(ihl = 6u, options = options)
+        val stream = ByteBuffer.wrap(ipHeader.toByteArray())
+        stream.limit(stream.limit() - 1)
+        assertThrows<PacketTooShortException> {
+            Ipv4Header.fromStream(stream)
+        }
+    }
+
     @Test fun copiedClassTypeTest() {
         val option =
             Ipv4OptionUnknown(isCopied = true, optionClass = Ipv4OptionClassType.DebuggingAndMeasurement, type = Ipv4OptionType.StreamId)
@@ -42,13 +69,20 @@ class Ipv4OptionTest {
 
     @Test fun unknownOption() {
         // unhandled option, but in list
-        val stream = ByteBuffer.wrap(byteArrayOf(0xFE.toByte(), 0x04, 0x00, 0x00))
+        val data = byteArrayOf(0x00, 0x00)
+        val stream = ByteBuffer.wrap(byteArrayOf(0xFE.toByte(), 0x04, data[0], data[1]))
         val parsedOptions = Ipv4Option.parseOptions(stream, 4)
+        assertEquals(1, parsedOptions.size)
         assertTrue(parsedOptions[0] is Ipv4OptionUnknown)
+        val parsedOption = parsedOptions[0] as Ipv4OptionUnknown
+        for (i in data.indices) {
+            assertEquals(data[i], parsedOption.data[i])
+        }
 
         // unhandled option, not in list
         val stream2 = ByteBuffer.wrap(byteArrayOf(0x11.toByte(), 0x04, 0x00, 0x00))
         val parsedOptions2 = Ipv4Option.parseOptions(stream2, 4)
+        assertEquals(1, parsedOptions2.size)
         assertTrue(parsedOptions2[0] is Ipv4OptionUnknown)
 
         // unknown option good path
@@ -58,6 +92,11 @@ class Ipv4OptionTest {
         val parsedOptions3 = Ipv4Option.parseOptions(stream3)
         assertEquals(1, parsedOptions3.size)
         assertEquals(unhandledOption, parsedOptions3[0])
+
+        val otherClass = TcpOptionNoOperation()
+        assertNotEquals(unhandledOption, otherClass)
+        assertNotEquals(unhandledOption, null)
+        assertEquals(unhandledOption, unhandledOption)
     }
 
     @Test fun unknownOptionTooShortLength() {
@@ -148,23 +187,31 @@ class Ipv4OptionTest {
         val parsedOptions = Ipv4Option.parseOptions(stream)
         assertEquals(1, parsedOptions.size)
         assertEquals(option, parsedOptions[0])
+        val parsedOption = parsedOptions[0] as Ipv4OptionSecurity
+        assertEquals(option.security, parsedOption.security)
+        assertEquals(option.compartment, parsedOption.compartment)
+        assertEquals(option.handlingRestrictions, parsedOption.handlingRestrictions)
+        assertEquals(option.tcc, parsedOption.tcc)
     }
 
     @Test fun ipv4OptionSecurityTooShort() {
-        val option =
-            Ipv4OptionSecurity(
-                isCopied = true,
-                optionClass = Ipv4OptionClassType.DebuggingAndMeasurement,
-                type = Ipv4OptionType.Security,
-                security = Ipv4OptionSecurityType.Confidential,
-                compartment = 1234u,
-                handlingRestrictions = 5678u,
-                tcc = 9102u,
-            )
+        val option = Ipv4OptionSecurity()
         val stream = ByteBuffer.wrap(option.toByteArray())
         stream.limit(stream.limit() - 1)
         assertThrows<PacketTooShortException> {
             Ipv4Option.parseOptions(stream)
+        }
+
+        stream.position(2)
+        assertThrows<PacketTooShortException> {
+            Ipv4OptionSecurity.fromStream(stream, option.isCopied, option.optionClass, option.size)
+        }
+    }
+
+    @Test
+    fun ipv4OptionSecurityTypeBad() {
+        assertThrows<IllegalArgumentException> {
+            Ipv4OptionSecurityType.fromKind(0x20u)
         }
     }
 
@@ -198,6 +245,33 @@ class Ipv4OptionTest {
 
         val option4 = Ipv4OptionLooseSourceAndRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x03))
         assertNotEquals(option1, option4)
+
+        val option5 = TcpOptionNoOperation()
+        assertNotEquals(option1, option5)
+        assertNotEquals(option1, null)
+        assertEquals(option1, option1)
+        assertEquals(option1.pointer, option1.pointer)
+        for (i in option1.routeData.indices) {
+            assertEquals(option1.routeData[i], option1.routeData[i])
+        }
+
+        val option6 = Ipv4OptionLooseSourceAndRecordRoute(isCopied = false, pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        assertNotEquals(option1, option6)
+
+        val option7 =
+            Ipv4OptionLooseSourceAndRecordRoute(
+                optionClass = Ipv4OptionClassType.DebuggingAndMeasurement,
+                pointer = 0u,
+                routeData = byteArrayOf(0x00, 0x01, 0x02),
+            )
+        assertNotEquals(option1, option7)
+
+        val option8 =
+            Ipv4OptionLooseSourceAndRecordRoute(type = Ipv4OptionType.StreamId, pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        assertNotEquals(option1, option8)
+
+        val option9 = Ipv4OptionLooseSourceAndRecordRoute(pointer = 0u)
+        assertNotEquals(option1, option9)
     }
 
     @Test fun ipv4OptionLooseSourceAndRecordRouteHashCode() {
@@ -236,6 +310,33 @@ class Ipv4OptionTest {
 
         val option4 = Ipv4OptionStrictSourceAndRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x03))
         assertNotEquals(option1, option4)
+
+        val option5 = TcpOptionNoOperation()
+        assertNotEquals(option1, option5)
+        assertNotEquals(option1, null)
+        assertEquals(option1, option1)
+        assertEquals(option1.pointer, option1.pointer)
+        for (i in option1.routeData.indices) {
+            assertEquals(option1.routeData[i], option1.routeData[i])
+        }
+
+        val option6 = Ipv4OptionStrictSourceAndRecordRoute(isCopied = false, pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        assertNotEquals(option1, option6)
+
+        val option7 =
+            Ipv4OptionStrictSourceAndRecordRoute(
+                optionClass = Ipv4OptionClassType.DebuggingAndMeasurement,
+                pointer = 0u,
+                routeData = byteArrayOf(0x00, 0x01, 0x02),
+            )
+        assertNotEquals(option1, option7)
+
+        val option8 =
+            Ipv4OptionStrictSourceAndRecordRoute(type = Ipv4OptionType.StreamId, pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        assertNotEquals(option1, option8)
+
+        val option9 = Ipv4OptionStrictSourceAndRecordRoute(pointer = 0u)
+        assertNotEquals(option1, option9)
     }
 
     @Test fun ipv4OptionStrictSourceAndRecordRouteHashCode() {
@@ -268,12 +369,36 @@ class Ipv4OptionTest {
         val option1 = Ipv4OptionRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
         val option2 = Ipv4OptionRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
         assertEquals(option1, option2)
+        assertEquals(option1.pointer, option2.pointer)
+        for (i in option1.routeData.indices) {
+            assertEquals(option1.routeData[i], option2.routeData[i])
+        }
 
         val option3 = Ipv4OptionRecordRoute(pointer = 1u, routeData = byteArrayOf(0x00, 0x01, 0x02))
         assertNotEquals(option1, option3)
 
         val option4 = Ipv4OptionRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x03))
         assertNotEquals(option1, option4)
+
+        val option5 = TcpOptionNoOperation()
+        assertNotEquals(option1, option5)
+        assertNotEquals(option1, null)
+        assertEquals(option1, option1)
+
+        val option6 = Ipv4OptionRecordRoute(isCopied = true, pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        assertNotEquals(option1, option6)
+
+        val option7 =
+            Ipv4OptionRecordRoute(
+                optionClass = Ipv4OptionClassType.DebuggingAndMeasurement,
+                pointer = 0u,
+                routeData = byteArrayOf(0x00, 0x01, 0x02),
+            )
+        assertNotEquals(option1, option7)
+
+        val option8 =
+            Ipv4OptionRecordRoute(type = Ipv4OptionType.StreamId, pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        assertNotEquals(option1, option8)
     }
 
     @Test fun ipv4OptionRecordRouteHashCode() {
@@ -324,6 +449,11 @@ class Ipv4OptionTest {
         val parsedOptions = Ipv4Option.parseOptions(stream)
         assertEquals(1, parsedOptions.size)
         assertEquals(option, parsedOptions[0])
+        val parsedOption = parsedOptions[0] as Ipv4OptionInternetTimestamp
+        assertEquals(option.pointer, parsedOption.pointer)
+        assertEquals(option.overFlowFlags, parsedOption.overFlowFlags)
+        assertEquals(option.internetAddress, parsedOption.internetAddress)
+        assertEquals(option.timestamps, parsedOption.timestamps)
     }
 
     @Test fun ipv4OptionTimestampTooShort() {
