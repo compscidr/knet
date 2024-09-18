@@ -206,4 +206,215 @@ class Ipv4OptionTest {
         map[option1] = "test"
         assertTrue(map.containsKey(option1))
     }
+
+    @Test fun ipv4OptionStrictSourceAndRecordRoute() {
+        val option = Ipv4OptionStrictSourceAndRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        val stream = ByteBuffer.wrap(option.toByteArray())
+        logger.debug("Stream length: ${stream.limit()}")
+        val parsedOptions = Ipv4Option.parseOptions(stream)
+        assertEquals(1, parsedOptions.size)
+        assertEquals(option, parsedOptions[0])
+    }
+
+    @Test fun ipv4OptionStrictSourceAndRecordRouteTooShort() {
+        val option = Ipv4OptionStrictSourceAndRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        val stream = ByteBuffer.wrap(option.toByteArray())
+        stream.limit(stream.limit() - 1)
+        stream.position(2)
+        assertThrows<PacketTooShortException> {
+            Ipv4OptionStrictSourceAndRecordRoute.fromStream(stream, true, Ipv4OptionClassType.DebuggingAndMeasurement, 6u)
+        }
+    }
+
+    @Test fun ipv4OptionStrictSourceAndRecordRouteEquals() {
+        val option1 = Ipv4OptionStrictSourceAndRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        val option2 = Ipv4OptionStrictSourceAndRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        assertEquals(option1, option2)
+
+        val option3 = Ipv4OptionStrictSourceAndRecordRoute(pointer = 1u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        assertNotEquals(option1, option3)
+
+        val option4 = Ipv4OptionStrictSourceAndRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x03))
+        assertNotEquals(option1, option4)
+    }
+
+    @Test fun ipv4OptionStrictSourceAndRecordRouteHashCode() {
+        val map: MutableMap<Ipv4OptionStrictSourceAndRecordRoute, String> = mutableMapOf()
+        val option1 = Ipv4OptionStrictSourceAndRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        map[option1] = "test"
+        assertTrue(map.containsKey(option1))
+    }
+
+    @Test fun ipv4OptionRecordRoute() {
+        val option = Ipv4OptionRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02, 0x03))
+        val stream = ByteBuffer.wrap(option.toByteArray())
+        logger.debug("Stream length: ${stream.limit()}")
+        val parsedOptions = Ipv4Option.parseOptions(stream)
+        assertEquals(1, parsedOptions.size)
+        assertEquals(option, parsedOptions[0])
+    }
+
+    @Test fun ipv4OptionRecordRouteTooShort() {
+        val option = Ipv4OptionRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        val stream = ByteBuffer.wrap(option.toByteArray())
+        stream.limit(stream.limit() - 1)
+        stream.position(2)
+        assertThrows<PacketTooShortException> {
+            Ipv4OptionRecordRoute.fromStream(stream, true, Ipv4OptionClassType.DebuggingAndMeasurement, 6u)
+        }
+    }
+
+    @Test fun ipv4OptionRecordRouteEquals() {
+        val option1 = Ipv4OptionRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        val option2 = Ipv4OptionRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        assertEquals(option1, option2)
+
+        val option3 = Ipv4OptionRecordRoute(pointer = 1u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        assertNotEquals(option1, option3)
+
+        val option4 = Ipv4OptionRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x03))
+        assertNotEquals(option1, option4)
+    }
+
+    @Test fun ipv4OptionRecordRouteHashCode() {
+        val map: MutableMap<Ipv4OptionRecordRoute, String> = mutableMapOf()
+        val option1 = Ipv4OptionRecordRoute(pointer = 0u, routeData = byteArrayOf(0x00, 0x01, 0x02))
+        map[option1] = "test"
+        assertTrue(map.containsKey(option1))
+    }
+
+    @Test fun ipv4OptionStreamIdentifier() {
+        val option = Ipv4OptionStreamIdentifier(streamId = 0x1234u)
+        val stream = ByteBuffer.wrap(option.toByteArray())
+        logger.debug("Stream length: ${stream.limit()}")
+        val parsedOptions = Ipv4Option.parseOptions(stream)
+        assertEquals(1, parsedOptions.size)
+        assertEquals(option, parsedOptions[0])
+    }
+
+    @Test fun ipv4OptionStreamIdentifierTooShort() {
+        val option = Ipv4OptionStreamIdentifier(streamId = 0x1234u)
+        val stream = ByteBuffer.wrap(option.toByteArray())
+        stream.limit(stream.limit() - 1)
+        stream.position(2)
+        assertThrows<PacketTooShortException> {
+            Ipv4OptionStreamIdentifier.fromStream(stream, true, Ipv4OptionClassType.DebuggingAndMeasurement, 6u)
+        }
+    }
+
+    @Test fun ipv4OptionStreamIdentifierEquals() {
+        val option1 = Ipv4OptionStreamIdentifier(streamId = 0x1234u)
+        val option2 = Ipv4OptionStreamIdentifier(streamId = 0x1234u)
+        assertEquals(option1, option2)
+
+        val option3 = Ipv4OptionStreamIdentifier(streamId = 0x1235u)
+        assertNotEquals(option1, option3)
+    }
+
+    @Test fun ipv4OptionTimestamp() {
+        val option =
+            Ipv4OptionInternetTimestamp(
+                pointer = 0u,
+                overFlowFlags = 0x01u,
+                internetAddress = 0x5678u,
+                timestamps = listOf(0x1234u, 0x5678u),
+            )
+        val stream = ByteBuffer.wrap(option.toByteArray())
+        logger.debug("Stream length: ${stream.limit()}")
+        val parsedOptions = Ipv4Option.parseOptions(stream)
+        assertEquals(1, parsedOptions.size)
+        assertEquals(option, parsedOptions[0])
+    }
+
+    @Test fun ipv4OptionTimestampTooShort() {
+        val option =
+            Ipv4OptionInternetTimestamp(
+                pointer = 0u,
+                overFlowFlags = 0x01u,
+                internetAddress = 0x5678u,
+                timestamps = listOf(0x1234u, 0x5678u),
+            )
+        val stream = ByteBuffer.wrap(option.toByteArray())
+        stream.limit(stream.limit() - 1)
+        stream.position(2)
+        assertThrows<PacketTooShortException> {
+            Ipv4OptionInternetTimestamp.fromStream(stream, true, Ipv4OptionClassType.DebuggingAndMeasurement, option.size)
+        }
+    }
+
+    @Test fun ipv4OptionTimestampEquals() {
+        val option1 =
+            Ipv4OptionInternetTimestamp(
+                pointer = 0u,
+                overFlowFlags = 0x01u,
+                internetAddress = 0x5678u,
+                timestamps = listOf(0x1234u, 0x5678u),
+            )
+        val option2 =
+            Ipv4OptionInternetTimestamp(
+                pointer = 0u,
+                overFlowFlags = 0x01u,
+                internetAddress = 0x5678u,
+                timestamps = listOf(0x1234u, 0x5678u),
+            )
+        assertEquals(option1, option2)
+
+        val option3 =
+            Ipv4OptionInternetTimestamp(
+                pointer = 1u,
+                overFlowFlags = 0x01u,
+                internetAddress = 0x5678u,
+                timestamps = listOf(0x1234u, 0x5678u),
+            )
+        assertNotEquals(option1, option3)
+
+        val option4 =
+            Ipv4OptionInternetTimestamp(
+                pointer = 0u,
+                overFlowFlags = 0x02u,
+                internetAddress = 0x5678u,
+                timestamps = listOf(0x1234u, 0x5678u),
+            )
+        assertNotEquals(option1, option4)
+
+        val option5 =
+            Ipv4OptionInternetTimestamp(
+                pointer = 0u,
+                overFlowFlags = 0x01u,
+                internetAddress = 0x5679u,
+                timestamps = listOf(0x1234u, 0x5678u),
+            )
+        assertNotEquals(option1, option5)
+
+        val option6 =
+            Ipv4OptionInternetTimestamp(
+                pointer = 0u,
+                overFlowFlags = 0x01u,
+                internetAddress = 0x5678u,
+                timestamps = listOf(0x1235u, 0x5678u),
+            )
+        assertNotEquals(option1, option6)
+
+        val option7 =
+            Ipv4OptionInternetTimestamp(
+                pointer = 0u,
+                overFlowFlags = 0x01u,
+                internetAddress = 0x5678u,
+                timestamps = listOf(0x1234u, 0x5679u),
+            )
+        assertNotEquals(option1, option7)
+    }
+
+    @Test fun ipv4OptionTimestampHashCode() {
+        val map: MutableMap<Ipv4OptionInternetTimestamp, String> = mutableMapOf()
+        val option1 =
+            Ipv4OptionInternetTimestamp(
+                pointer = 0u,
+                overFlowFlags = 0x01u,
+                internetAddress = 0x5678u,
+                timestamps = listOf(0x1234u, 0x5678u),
+            )
+        map[option1] = "test"
+        assertTrue(map.containsKey(option1))
+    }
 }

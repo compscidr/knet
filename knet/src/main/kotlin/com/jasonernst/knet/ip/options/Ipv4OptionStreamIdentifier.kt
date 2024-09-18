@@ -2,6 +2,7 @@ package com.jasonernst.knet.ip.options
 
 import com.jasonernst.knet.PacketTooShortException
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 /**
  * From the RFC 791:
@@ -49,9 +50,9 @@ data class Ipv4OptionStreamIdentifier(
     override val optionClass: Ipv4OptionClassType = Ipv4OptionClassType.Control,
     override val type: Ipv4OptionType = Ipv4OptionType.StreamId,
     val streamId: UShort,
-) : Ipv4Option(isCopied = isCopied, optionClass = optionClass, type = type, size = 0u) {
+) : Ipv4Option(isCopied = isCopied, optionClass = optionClass, type = type, size = MIN_OPTION_SIZE) {
     companion object {
-        const val MIN_OPTION_SIZE: UByte = 3u
+        const val MIN_OPTION_SIZE: UByte = 4u // two bytes for the type, size, two for the stremaid
 
         fun fromStream(
             stream: ByteBuffer,
@@ -73,5 +74,13 @@ data class Ipv4OptionStreamIdentifier(
                 streamId = streamId,
             )
         }
+    }
+
+    override fun toByteArray(order: ByteOrder): ByteArray {
+        val buffer = ByteBuffer.allocate(size.toInt())
+        buffer.order(order)
+        buffer.put(super.toByteArray(order))
+        buffer.putShort(streamId.toShort())
+        return buffer.array()
     }
 }

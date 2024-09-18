@@ -1,6 +1,7 @@
 package com.jasonernst.knet.ip.options
 
 import com.jasonernst.knet.PacketTooShortException
+import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -64,9 +65,15 @@ data class Ipv4OptionInternetTimestamp(
     val overFlowFlags: UByte,
     val internetAddress: UInt,
     val timestamps: List<UInt>,
-) : Ipv4Option(isCopied = isCopied, optionClass = optionClass, type = type, size = MIN_OPTION_SIZE) {
+) : Ipv4Option(
+        isCopied = isCopied,
+        optionClass = optionClass,
+        type = type,
+        size = (MIN_OPTION_SIZE.toInt() + timestamps.size * 4).toUByte(),
+    ) {
     companion object {
-        val MIN_OPTION_SIZE: UByte = 5u
+        private val logger = LoggerFactory.getLogger(Ipv4OptionInternetTimestamp::class.java)
+        val MIN_OPTION_SIZE: UByte = 8u // 2 for type, size, 1 for pointer, 1 for overflow/flags, 4 for internet address
 
         fun fromStream(
             stream: ByteBuffer,
@@ -74,6 +81,7 @@ data class Ipv4OptionInternetTimestamp(
             optionClass: Ipv4OptionClassType,
             size: UByte,
         ): Ipv4OptionInternetTimestamp {
+            logger.debug("SIZE: $size, remaining: ${stream.remaining()}")
             if (stream.remaining() < (size - 2u).toInt()) {
                 throw PacketTooShortException(
                     "Stream must have at least ${size - 2u} " +

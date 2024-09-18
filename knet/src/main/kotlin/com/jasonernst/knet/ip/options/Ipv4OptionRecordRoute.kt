@@ -52,7 +52,7 @@ data class Ipv4OptionRecordRoute(
     override val type: Ipv4OptionType = Ipv4OptionType.RecordRoute,
     val pointer: UByte,
     val routeData: ByteArray = ByteArray(0),
-) : Ipv4Option(isCopied = isCopied, optionClass = optionClass, type = type, size = MIN_OPTION_SIZE) {
+) : Ipv4Option(isCopied = isCopied, optionClass = optionClass, type = type, size = (MIN_OPTION_SIZE + routeData.size.toUByte()).toUByte()) {
     companion object {
         val MIN_OPTION_SIZE: UByte = 3u
         private val logger = LoggerFactory.getLogger(Ipv4OptionRecordRoute::class.java)
