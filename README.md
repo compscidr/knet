@@ -8,8 +8,13 @@ Kotlin user-space network stack. This can be used for:
 - Interop testing with other network protocol implementations
 
 ## What is implemented
-- [] IPv4
-- [] IPv6
-- [] ICMP (via https://github.com/compscidr/icmp)
+- [x] IPv4:
+  - [x] WiP: RFC 791: https://datatracker.ietf.org/doc/html/rfc791
+  - [ ] RFC 6864: https://datatracker.ietf.org/doc/html/rfc6864
+  - [ ] RFC 1349 https://datatracker.ietf.org/doc/html/rfc1349
+  - [ ] RFC 2474: https://datatracker.ietf.org/doc/html/rfc2474
+- [x] IPv6:
+  - [X] WiP: RFC 8200: https://datatracker.ietf.org/doc/html/rfc8200
+- [x] ICMP (via https://github.com/compscidr/icmp)
 - [] TCP
 - [] UDP
