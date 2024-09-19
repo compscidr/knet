@@ -9,8 +9,20 @@ import java.nio.ByteOrder
  * Defines a type-length-value (TLV) extension header for IPv6 packets. Note that not all of the
  * well-defined Ipv6 extension headers support this.
  *
+ * https://datatracker.ietf.org/doc/html/rfc8200#section-4.1
  * https://www.rfc-editor.org/rfc/rfc6564#page-4
  * https://www.rfc-editor.org/rfc/rfc7045.html
+ *
+ * Suggested extension header order:
+ * IPv6 header
+ * Hop-by-Hop Options header
+ * Destination Options header (note 1)
+ * Routing header
+ * Fragment header
+ * Authentication header (note 2)
+ * Encapsulating Security Payload header (note 2)
+ * Destination Options header (note 3)
+ * Upper-Layer header
  */
 open class Ipv6ExtensionHeader(
     open val nextHeader: UByte,

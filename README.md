@@ -16,6 +16,8 @@ Kotlin user-space network stack. This can be used for:
   - [ ] RFC 2474: https://datatracker.ietf.org/doc/html/rfc2474
 - [x] IPv6:
   - [X] WiP: RFC 8200: https://datatracker.ietf.org/doc/html/rfc8200
+  - [ ] RFC 6564: https://www.rfc-editor.org/rfc/rfc6564
+  - [ ] RFC 7045: https://www.rfc-editor.org/rfc/rfc7045.html
   - [ ] RFC: 4302: https://datatracker.ietf.org/doc/html/rfc4302
   - [ ] RFC: 4303: https://datatracker.ietf.org/doc/html/rfc4303
 - [x] ICMP (via https://github.com/compscidr/icmp)
