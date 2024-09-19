@@ -91,6 +91,7 @@ data class Ipv4Header(
         private const val CHECKSUM_OFFSET = 10
         const val IP4_WORD_LENGTH: UByte = 4u
         val IP4_MIN_HEADER_LENGTH: UByte = (IP4_WORD_LENGTH * 5u).toUByte()
+        val IP4_MIN_FRAGMENT_PAYLOAD: UByte = 8u // since they must be measured in 64-bit octets
 
         fun fromStream(stream: ByteBuffer): Ipv4Header {
             val start = stream.position()
@@ -159,6 +160,68 @@ data class Ipv4Header(
                 options = options,
             )
         }
+
+        /**
+         * To assemble the fragments of an internet datagram, an internet
+         *     protocol module (for example at a destination host) combines
+         *     internet datagrams that all have the same value for the four fields:
+         *     identification, source, destination, and protocol.  The combination
+         *     is done by placing the data portion of each fragment in the relative
+         *     position indicated by the fragment offset in that fragment's
+         *     internet header.  The first fragment will have the fragment offset
+         *     zero, and the last fragment will have the more-fragments flag reset
+         *     to zero.
+         *
+         *  NOTE: The fragment offset is measured in units of 8 octets (64 bits).  The
+         *     first fragment has offset zero.
+         *
+         */
+        fun reassemble(fragments: List<Pair<Ipv4Header, ByteArray>>): Pair<Ipv4Header, ByteArray> {
+            if (fragments.isEmpty()) {
+                throw IllegalArgumentException("Cannot reassemble an empty list of fragments")
+            }
+            if (fragments.size == 1) {
+                if (fragments[0].first.lastFragment) {
+                    return fragments[0]
+                } else {
+                    throw IllegalArgumentException("Cannot reassemble a single fragment that is not marked as the last fragment")
+                }
+            }
+            val firstFragment = fragments[0]
+            val totalPayloadLength = fragments.sumOf { it.first.totalLength - it.first.getHeaderLength() }
+            logger.debug("TOTAL PAYLOAD LEN: $totalPayloadLength")
+            val payload = ByteArray(totalPayloadLength.toInt())
+            for (fragment in fragments) {
+                if (fragment.first.id != firstFragment.first.id ||
+                    fragment.first.protocol != firstFragment.first.protocol ||
+                    fragment.first.sourceAddress != firstFragment.first.sourceAddress ||
+                    fragment.first.destinationAddress != firstFragment.first.destinationAddress
+                ) {
+                    throw IllegalArgumentException("Trying to re-assemble packets which don't have matching id, protocol, src, dest")
+                }
+                val fragmentPayload = fragment.second
+                val payloadPosition = fragment.first.fragmentOffset * 8u // measured in 64-bit octets
+                fragmentPayload.copyInto(payload, payloadPosition.toInt())
+            }
+            return Pair(
+                Ipv4Header(
+                    ihl = firstFragment.first.ihl,
+                    dscp = firstFragment.first.dscp,
+                    ecn = firstFragment.first.ecn,
+                    totalLength = (totalPayloadLength + firstFragment.first.getHeaderLength()).toUShort(),
+                    id = firstFragment.first.id,
+                    dontFragment = firstFragment.first.dontFragment,
+                    lastFragment = true,
+                    fragmentOffset = firstFragment.first.fragmentOffset,
+                    ttl = firstFragment.first.ttl,
+                    protocol = firstFragment.first.protocol,
+                    sourceAddress = firstFragment.first.sourceAddress,
+                    destinationAddress = firstFragment.first.destinationAddress,
+                    options = firstFragment.first.options,
+                ),
+                payload,
+            )
+        }
     }
 
     override fun toByteArray(order: ByteOrder): ByteArray {
@@ -217,4 +280,98 @@ data class Ipv4Header(
             ", protocol=$protocol" +
             ", headerChecksum=${Integer.toUnsignedString(headerChecksum.toInt())}" +
             ", sourceAddress=$sourceAddress, destinationAddress=$destinationAddress, flag=$flag)"
+
+    /**
+     * Takes the current ipv4 header and fragments it into smaller ipv4 headers + payloads
+     *
+     * To fragment a long internet datagram, an internet protocol module
+     *     (for example, in a gateway), creates two new internet datagrams and
+     *     copies the contents of the internet header fields from the long
+     *     datagram into both new internet headers.  The data of the long
+     *     datagram is divided into two portions on a 8 octet (64 bit) boundary
+     *     (the second portion might not be an integral multiple of 8 octets,
+     *     but the first must be).  Call the number of 8 octet blocks in the
+     *     first portion NFB (for Number of Fragment Blocks).  The first
+     *     portion of the data is placed in the first new internet datagram,
+     *     and the total length field is set to the length of the first
+     *     datagram.  The more-fragments flag is set to one.  The second
+     *     portion of the data is placed in the second new internet datagram,
+     *     and the total length field is set to the length of the second
+     *     datagram.  The more-fragments flag carries the same value as the
+     *     long datagram.  The fragment offset field of the second new internet
+     *     datagram is set to the value of that field in the long datagram plus
+     *     NFB.
+     *
+     *     This procedure can be generalized for an n-way split, rather than
+     *     the two-way split described.
+     *
+     *     When fragmentation occurs, some options are copied, but others
+     *     remain with the first fragment only.
+     *
+     */
+    fun fragment(
+        maxSize: UInt,
+        payload: ByteArray,
+    ): List<Pair<Ipv4Header, ByteArray>> {
+        if (dontFragment) {
+            throw IllegalArgumentException("Cannot fragment packets marked as don't fragment")
+        }
+        val packetList = mutableListOf<Pair<Ipv4Header, ByteArray>>()
+        // in order to fragment we need at least 1 byte of payload (which is why its <=)
+        // this way we could make a large packet into a bunch of 1 byte payloads with headers if
+        // we wanted
+        if (maxSize < IP4_MIN_FRAGMENT_PAYLOAD) {
+            throw IllegalArgumentException(
+                "The smallest fragment size is ${IP4_MIN_FRAGMENT_PAYLOAD.toInt()} bytes because it must align on a 64-bit boundary",
+            )
+        }
+        var payloadPerPacket = maxSize - getHeaderLength()
+        var payloadPosition = 0u
+        var isFirstFragment = true
+        while (payloadPosition < payload.size.toUInt()) {
+            logger.debug("$payloadPosition:${payloadPosition + payloadPerPacket}")
+            val offsetIn64BitOctets = payloadPosition / 8u
+            var newOptions = options
+            var newIhl = ihl
+
+            if (isFirstFragment.not()) {
+                newOptions = mutableListOf<Ipv4Option>()
+                for (option in options) {
+                    if (option.isCopied) {
+                        newOptions.add(option)
+                    }
+                }
+                val newOptionsLength = newOptions.sumOf { it.size.toInt() }.toUInt()
+                newIhl =
+                    ceil((IP4_MIN_HEADER_LENGTH.toDouble() + newOptionsLength.toDouble()) / IP4_WORD_LENGTH.toDouble()).toUInt().toUByte()
+            } else {
+                isFirstFragment = false
+            }
+
+            val newHeader =
+                Ipv4Header(
+                    ihl = newIhl,
+                    dscp = dscp,
+                    ecn = ecn,
+                    totalLength = (getHeaderLength() + payloadPerPacket).toUShort(),
+                    id = id,
+                    dontFragment = false,
+                    lastFragment = payloadPosition >= getHeaderLength(),
+                    fragmentOffset = offsetIn64BitOctets.toUShort(),
+                    ttl = ttl,
+                    protocol = protocol,
+                    sourceAddress = sourceAddress,
+                    destinationAddress = destinationAddress,
+                    options = newOptions,
+                )
+            logger.debug("payload len:${newHeader.getPayloadLength()}")
+            val newPayload = payload.copyOfRange(payloadPosition.toInt(), payloadPosition.toInt() + payloadPerPacket.toInt())
+            packetList.add(Pair(newHeader, newPayload))
+            payloadPosition += payloadPerPacket
+            if (payloadPosition + payloadPerPacket > payload.size.toUInt()) {
+                payloadPerPacket = payload.size.toUInt() - payloadPosition
+            }
+        }
+        return packetList
+    }
 }
