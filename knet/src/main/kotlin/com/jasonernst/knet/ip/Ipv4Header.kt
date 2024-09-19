@@ -160,6 +160,21 @@ data class Ipv4Header(
             )
         }
 
+        /**
+         * To assemble the fragments of an internet datagram, an internet
+         *     protocol module (for example at a destination host) combines
+         *     internet datagrams that all have the same value for the four fields:
+         *     identification, source, destination, and protocol.  The combination
+         *     is done by placing the data portion of each fragment in the relative
+         *     position indicated by the fragment offset in that fragment's
+         *     internet header.  The first fragment will have the fragment offset
+         *     zero, and the last fragment will have the more-fragments flag reset
+         *     to zero.
+         *
+         *  NOTE: The fragment offset is measured in units of 8 octets (64 bits).  The
+         *     first fragment has offset zero.
+         *
+         */
         fun reassemble(fragments: List<Pair<Ipv4Header, ByteArray>>): Pair<Ipv4Header, ByteArray> {
             if (fragments.isEmpty()) {
                 throw IllegalArgumentException("Cannot reassemble an empty list of fragments")
@@ -176,6 +191,13 @@ data class Ipv4Header(
             val payload = ByteArray(totalPayloadLength.toInt())
             var payloadPosition = 0u
             for (fragment in fragments) {
+                if (fragment.first.id != firstFragment.first.id ||
+                    fragment.first.protocol != firstFragment.first.protocol ||
+                    fragment.first.sourceAddress != firstFragment.first.sourceAddress ||
+                    fragment.first.destinationAddress != firstFragment.first.destinationAddress
+                ) {
+                    throw IllegalArgumentException("Trying to re-assemble packets which don't have matching id, protocol, src, dest")
+                }
                 val fragmentPayload = fragment.second
                 fragmentPayload.copyInto(payload, payloadPosition.toInt())
                 payloadPosition += fragmentPayload.size.toUInt()
@@ -260,6 +282,29 @@ data class Ipv4Header(
 
     /**
      * Takes the current ipv4 header and fragments it into smaller ipv4 headers + payloads
+     *
+     * To fragment a long internet datagram, an internet protocol module
+     *     (for example, in a gateway), creates two new internet datagrams and
+     *     copies the contents of the internet header fields from the long
+     *     datagram into both new internet headers.  The data of the long
+     *     datagram is divided into two portions on a 8 octet (64 bit) boundary
+     *     (the second portion might not be an integral multiple of 8 octets,
+     *     but the first must be).  Call the number of 8 octet blocks in the
+     *     first portion NFB (for Number of Fragment Blocks).  The first
+     *     portion of the data is placed in the first new internet datagram,
+     *     and the total length field is set to the length of the first
+     *     datagram.  The more-fragments flag is set to one.  The second
+     *     portion of the data is placed in the second new internet datagram,
+     *     and the total length field is set to the length of the second
+     *     datagram.  The more-fragments flag carries the same value as the
+     *     long datagram.  The fragment offset field of the second new internet
+     *     datagram is set to the value of that field in the long datagram plus
+     *     NFB.
+     *
+     *     This procedure can be generalized for an n-way split, rather than
+     *     the two-way split described.
+     *
+     *     TODO: ensure the split occurs on the correct 8-octet/64-bit boundary!!!!!
      */
     fun fragment(
         maxSize: UInt,
