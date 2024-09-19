@@ -34,6 +34,26 @@ import java.nio.ByteOrder
  *
  *       note 3: for options to be processed only by the final destination
  *               of the packet.
+ *
+ * Each extension header should occur at most once, except for the
+ * Destination Options header, which should occur at most twice (once
+ * before a Routing header and once before the upper-layer header).
+ *
+ * If the upper-layer header is another IPv6 header (in the case of IPv6
+ * being tunneled over or encapsulated in IPv6), it may be followed by
+ * its own extension headers, which are separately subject to the same
+ * ordering recommendations.
+ *
+ * If and when other extension headers are defined, their ordering
+ * constraints relative to the above listed headers must be specified.
+ *
+ * IPv6 nodes must accept and attempt to process extension headers in
+ * any order and occurring any number of times in the same packet,
+ * except for the Hop-by-Hop Options header, which is restricted to
+ * appear immediately after an IPv6 header only.  Nonetheless, it is
+ * strongly advised that sources of IPv6 packets adhere to the above
+ * recommended order until and unless subsequent specifications revise
+ * that recommendation.
  */
 open class Ipv6ExtensionHeader(
     open val nextHeader: UByte,
