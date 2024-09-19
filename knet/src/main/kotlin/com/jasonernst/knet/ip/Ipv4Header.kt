@@ -159,6 +159,46 @@ data class Ipv4Header(
                 options = options,
             )
         }
+
+        fun reassemble(fragments: List<Pair<Ipv4Header, ByteArray>>): Pair<Ipv4Header, ByteArray> {
+            if (fragments.isEmpty()) {
+                throw IllegalArgumentException("Cannot reassemble an empty list of fragments")
+            }
+            if (fragments.size == 1) {
+                if (fragments[0].first.lastFragment) {
+                    return fragments[0]
+                } else {
+                    throw IllegalArgumentException("Cannot reassemble a single fragment that is not marked as the last fragment")
+                }
+            }
+            val firstFragment = fragments[0]
+            val totalPayloadLength = fragments.sumOf { it.first.totalLength - it.first.getHeaderLength() }
+            val payload = ByteArray(totalPayloadLength.toInt())
+            var payloadPosition = 0u
+            for (fragment in fragments) {
+                val fragmentPayload = fragment.second
+                fragmentPayload.copyInto(payload, payloadPosition.toInt())
+                payloadPosition += fragmentPayload.size.toUInt()
+            }
+            return Pair(
+                Ipv4Header(
+                    ihl = firstFragment.first.ihl,
+                    dscp = firstFragment.first.dscp,
+                    ecn = firstFragment.first.ecn,
+                    totalLength = (totalPayloadLength + firstFragment.first.getHeaderLength()).toUShort(),
+                    id = firstFragment.first.id,
+                    dontFragment = firstFragment.first.dontFragment,
+                    lastFragment = true,
+                    fragmentOffset = firstFragment.first.fragmentOffset,
+                    ttl = firstFragment.first.ttl,
+                    protocol = firstFragment.first.protocol,
+                    sourceAddress = firstFragment.first.sourceAddress,
+                    destinationAddress = firstFragment.first.destinationAddress,
+                    options = firstFragment.first.options,
+                ),
+                payload,
+            )
+        }
     }
 
     override fun toByteArray(order: ByteOrder): ByteArray {
@@ -217,4 +257,54 @@ data class Ipv4Header(
             ", protocol=$protocol" +
             ", headerChecksum=${Integer.toUnsignedString(headerChecksum.toInt())}" +
             ", sourceAddress=$sourceAddress, destinationAddress=$destinationAddress, flag=$flag)"
+
+    /**
+     * Takes the current ipv4 header and fragments it into smaller ipv4 headers + payloads
+     */
+    fun fragment(
+        maxSize: UInt,
+        payload: ByteArray,
+    ): List<Pair<Ipv4Header, ByteArray>> {
+        if (dontFragment) {
+            throw IllegalArgumentException("Cannot fragment packets marked as don't fragment")
+        }
+        val packetList = mutableListOf<Pair<Ipv4Header, ByteArray>>()
+        // in order to fragment we need at least 1 byte of payload (which is why its <=)
+        // this way we could make a large packet into a bunch of 1 byte payloads with headers if
+        // we wanted
+        if (maxSize <= getHeaderLength()) {
+            throw IllegalArgumentException("Cannot fragment packets smaller than the minimum header size")
+        }
+        var payloadPerPacket = maxSize - getHeaderLength()
+        var payloadPosition = 0u
+        while (payloadPosition < payload.size.toUInt()) {
+            val newHeader =
+                Ipv4Header(
+                    ihl = ihl,
+                    dscp = dscp,
+                    ecn = ecn,
+                    totalLength = (getHeaderLength() + payloadPerPacket).toUShort(),
+                    id = id,
+                    dontFragment = false,
+                    lastFragment = payloadPosition >= getHeaderLength(),
+                    fragmentOffset = payloadPosition.toUShort(),
+                    ttl = ttl,
+                    protocol = protocol,
+                    sourceAddress = sourceAddress,
+                    destinationAddress = destinationAddress,
+                    options = options,
+                )
+            if (payloadPosition + payloadPerPacket > payload.size.toUInt()) {
+                payloadPerPacket = payload.size.toUInt() - payloadPosition
+            }
+            if (payloadPerPacket < 1u) {
+                break
+            }
+            logger.debug("$payloadPosition:${payloadPosition + payloadPerPacket}")
+            val newPayload = payload.copyOfRange(payloadPosition.toInt(), payloadPosition.toInt() + payloadPerPacket.toInt())
+            packetList.add(Pair(newHeader, newPayload))
+            payloadPosition += payloadPerPacket
+        }
+        return packetList
+    }
 }

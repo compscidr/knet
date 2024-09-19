@@ -9,6 +9,7 @@ import com.jasonernst.knet.ip.options.Ipv4OptionNoOperation
 import com.jasonernst.knet.transport.tcp.TcpHeader
 import com.jasonernst.knet.transport.tcp.options.TcpOptionEndOfOptionList
 import com.jasonernst.packetdumper.stringdumper.StringPacketDumper
+import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -314,5 +315,16 @@ class Ipv4HeaderTest {
         assertThrows<PacketTooShortException> {
             Ipv4Header.fromStream(stream)
         }
+    }
+
+    @Test fun fragmentationAndReassembly() {
+        val payload = byteArrayOfInts(0x01, 0x02, 0x03, 0x04, 0x05, 0x06)
+        val ipv4Header = Ipv4Header(totalLength = (IP4_MIN_HEADER_LENGTH + payload.size.toUShort()).toUShort(), dontFragment = false)
+        val fragments = ipv4Header.fragment(IP4_MIN_HEADER_LENGTH + 1u, payload)
+        assertEquals(payload.size, fragments.size)
+
+        val reassembly = Ipv4Header.reassemble(fragments)
+        assertEquals(ipv4Header, reassembly.first)
+        assertArrayEquals(payload, reassembly.second)
     }
 }
