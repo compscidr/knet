@@ -1,7 +1,9 @@
 package com.jasonernst.knet.ip
 
 import com.jasonernst.knet.PacketTooShortException
-import com.jasonernst.knet.ip.Ipv4Header.Companion.IP4_MIN_HEADER_LENGTH
+import com.jasonernst.knet.ip.v4.Ipv4Header
+import com.jasonernst.knet.ip.v4.Ipv4Header.Companion.IP4_MIN_HEADER_LENGTH
+import com.jasonernst.knet.ip.v6.Ipv6Header
 import org.slf4j.LoggerFactory
 import java.net.Inet4Address
 import java.net.Inet6Address

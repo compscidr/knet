@@ -1,4 +1,4 @@
-package com.jasonernst.knet.ip.options
+package com.jasonernst.knet.ip.v4.options
 
 import com.jasonernst.knet.PacketTooShortException
 import org.slf4j.LoggerFactory
@@ -74,22 +74,64 @@ abstract class Ipv4Option(
                     }
                     when (kind) {
                         Ipv4OptionType.Security.kind -> {
-                            options.add(Ipv4OptionSecurity.fromStream(stream, isCopied, optionClass, length))
+                            options.add(
+                                Ipv4OptionSecurity.fromStream(
+                                    stream,
+                                    isCopied,
+                                    optionClass,
+                                    length
+                                )
+                            )
                         }
                         Ipv4OptionType.LooseSourceRouting.kind -> {
-                            options.add(Ipv4OptionLooseSourceAndRecordRoute.fromStream(stream, isCopied, optionClass, length))
+                            options.add(
+                                Ipv4OptionLooseSourceAndRecordRoute.fromStream(
+                                    stream,
+                                    isCopied,
+                                    optionClass,
+                                    length
+                                )
+                            )
                         }
                         Ipv4OptionType.StrictSourceRouting.kind -> {
-                            options.add(Ipv4OptionStrictSourceAndRecordRoute.fromStream(stream, isCopied, optionClass, length))
+                            options.add(
+                                Ipv4OptionStrictSourceAndRecordRoute.fromStream(
+                                    stream,
+                                    isCopied,
+                                    optionClass,
+                                    length
+                                )
+                            )
                         }
                         Ipv4OptionType.RecordRoute.kind -> {
-                            options.add(Ipv4OptionRecordRoute.fromStream(stream, isCopied, optionClass, length))
+                            options.add(
+                                Ipv4OptionRecordRoute.fromStream(
+                                    stream,
+                                    isCopied,
+                                    optionClass,
+                                    length
+                                )
+                            )
                         }
                         Ipv4OptionType.StreamId.kind -> {
-                            options.add(Ipv4OptionStreamIdentifier.fromStream(stream, isCopied, optionClass, length))
+                            options.add(
+                                Ipv4OptionStreamIdentifier.fromStream(
+                                    stream,
+                                    isCopied,
+                                    optionClass,
+                                    length
+                                )
+                            )
                         }
                         Ipv4OptionType.TimeStamp.kind -> {
-                            options.add(Ipv4OptionInternetTimestamp.fromStream(stream, isCopied, optionClass, length))
+                            options.add(
+                                Ipv4OptionInternetTimestamp.fromStream(
+                                    stream,
+                                    isCopied,
+                                    optionClass,
+                                    length
+                                )
+                            )
                         }
                         else -> {
                             val data = ByteArray(length.toInt() - 2)

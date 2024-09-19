@@ -1,4 +1,6 @@
-package com.jasonernst.knet.ip
+package com.jasonernst.knet.ip.v6.extenions
+
+import com.jasonernst.knet.ip.IpType
 
 data class Ipv6HopByHopOption(
     override val nextHeader: UByte = IpType.TCP.value,

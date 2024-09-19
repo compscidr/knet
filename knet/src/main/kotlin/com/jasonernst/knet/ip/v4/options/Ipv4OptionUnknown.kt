@@ -1,4 +1,4 @@
-package com.jasonernst.knet.ip.options
+package com.jasonernst.knet.ip.v4.options
 
 import java.nio.ByteBuffer
 import java.nio.ByteOrder

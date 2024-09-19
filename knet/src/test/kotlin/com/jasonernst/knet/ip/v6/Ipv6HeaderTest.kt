@@ -1,6 +1,9 @@
-package com.jasonernst.knet.ip
+package com.jasonernst.knet.ip.v6
 
 import com.jasonernst.knet.PacketTooShortException
+import com.jasonernst.knet.ip.IpHeader
+import com.jasonernst.knet.ip.v6.extenions.Ipv6ExtensionHeader
+import com.jasonernst.knet.ip.v6.extenions.Ipv6HopByHopOption
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue

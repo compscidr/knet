@@ -1,12 +1,14 @@
-package com.jasonernst.knet.ip
+package com.jasonernst.knet.ip.v4
 
 import com.jasonernst.icmp_common.Checksum
 import com.jasonernst.knet.PacketTooShortException
+import com.jasonernst.knet.ip.IpHeader
 import com.jasonernst.knet.ip.IpHeader.Companion.IP4_VERSION
-import com.jasonernst.knet.ip.Ipv4Header.Companion.IP4_MIN_FRAGMENT_PAYLOAD
-import com.jasonernst.knet.ip.Ipv4Header.Companion.IP4_MIN_HEADER_LENGTH
-import com.jasonernst.knet.ip.Ipv4Header.Companion.IP4_WORD_LENGTH
-import com.jasonernst.knet.ip.options.Ipv4OptionNoOperation
+import com.jasonernst.knet.ip.IpType
+import com.jasonernst.knet.ip.v4.Ipv4Header.Companion.IP4_MIN_FRAGMENT_PAYLOAD
+import com.jasonernst.knet.ip.v4.Ipv4Header.Companion.IP4_MIN_HEADER_LENGTH
+import com.jasonernst.knet.ip.v4.Ipv4Header.Companion.IP4_WORD_LENGTH
+import com.jasonernst.knet.ip.v4.options.Ipv4OptionNoOperation
 import com.jasonernst.knet.transport.tcp.TcpHeader
 import com.jasonernst.knet.transport.tcp.options.TcpOptionEndOfOptionList
 import com.jasonernst.packetdumper.stringdumper.StringPacketDumper

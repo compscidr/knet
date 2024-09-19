@@ -1,10 +1,12 @@
-package com.jasonernst.knet.ip
+package com.jasonernst.knet.ip.v4
 
 import com.jasonernst.icmp_common.Checksum
 import com.jasonernst.knet.PacketTooShortException
+import com.jasonernst.knet.ip.IpHeader
 import com.jasonernst.knet.ip.IpHeader.Companion.IP4_VERSION
-import com.jasonernst.knet.ip.options.Ipv4Option
-import com.jasonernst.knet.ip.options.Ipv4Option.Companion.parseOptions
+import com.jasonernst.knet.ip.IpType
+import com.jasonernst.knet.ip.v4.options.Ipv4Option
+import com.jasonernst.knet.ip.v4.options.Ipv4Option.Companion.parseOptions
 import org.slf4j.LoggerFactory
 import java.net.Inet4Address
 import java.net.InetAddress

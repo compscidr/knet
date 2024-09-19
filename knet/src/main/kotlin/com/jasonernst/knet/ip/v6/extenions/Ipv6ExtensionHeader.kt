@@ -1,6 +1,7 @@
-package com.jasonernst.knet.ip
+package com.jasonernst.knet.ip.v6.extenions
 
 import com.jasonernst.knet.PacketTooShortException
+import com.jasonernst.knet.ip.IpType
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -37,7 +38,14 @@ open class Ipv6ExtensionHeader(
          * Authentication
          * Encapsulating Security Payload
          */
-        val requiredExtensionHeaders = listOf(IpType.HOPOPT, IpType.IPV6_FRAG, IpType.IPV6_OPTS, IpType.IPV6_ROUTE, IpType.AH, IpType.ESP)
+        val requiredExtensionHeaders = listOf(
+            IpType.HOPOPT,
+            IpType.IPV6_FRAG,
+            IpType.IPV6_OPTS,
+            IpType.IPV6_ROUTE,
+            IpType.AH,
+            IpType.ESP
+        )
 
         /**
          * This will continue to process IPv6 extension headers until the nextheader is not one, ie)

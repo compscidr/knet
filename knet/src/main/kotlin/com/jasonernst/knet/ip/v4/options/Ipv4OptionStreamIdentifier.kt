@@ -1,4 +1,4 @@
-package com.jasonernst.knet.ip.options
+package com.jasonernst.knet.ip.v4.options
 
 import com.jasonernst.knet.PacketTooShortException
 import java.nio.ByteBuffer

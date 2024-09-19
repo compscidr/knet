@@ -1,4 +1,4 @@
-package com.jasonernst.knet.ip.options
+package com.jasonernst.knet.ip.v4.options
 
 /**
  * https://datatracker.ietf.org/doc/html/rfc791 page 15

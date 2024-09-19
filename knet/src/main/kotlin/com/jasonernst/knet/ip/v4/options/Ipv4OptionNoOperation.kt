@@ -1,4 +1,4 @@
-package com.jasonernst.knet.ip.options
+package com.jasonernst.knet.ip.v4.options
 
 /**
  * From RFC 791:
