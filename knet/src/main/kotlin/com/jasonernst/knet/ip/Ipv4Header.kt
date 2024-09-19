@@ -91,6 +91,7 @@ data class Ipv4Header(
         private const val CHECKSUM_OFFSET = 10
         const val IP4_WORD_LENGTH: UByte = 4u
         val IP4_MIN_HEADER_LENGTH: UByte = (IP4_WORD_LENGTH * 5u).toUByte()
+        val IP4_MIN_FRAGMENT_PAYLOAD: UByte = 8u // since they must be measured in 64-bit octets
 
         fun fromStream(stream: ByteBuffer): Ipv4Header {
             val start = stream.position()
@@ -188,8 +189,8 @@ data class Ipv4Header(
             }
             val firstFragment = fragments[0]
             val totalPayloadLength = fragments.sumOf { it.first.totalLength - it.first.getHeaderLength() }
+            logger.debug("TOTAL PAYLOAD LEN: $totalPayloadLength")
             val payload = ByteArray(totalPayloadLength.toInt())
-            var payloadPosition = 0u
             for (fragment in fragments) {
                 if (fragment.first.id != firstFragment.first.id ||
                     fragment.first.protocol != firstFragment.first.protocol ||
@@ -199,8 +200,8 @@ data class Ipv4Header(
                     throw IllegalArgumentException("Trying to re-assemble packets which don't have matching id, protocol, src, dest")
                 }
                 val fragmentPayload = fragment.second
+                val payloadPosition = fragment.first.fragmentOffset * 8u // measured in 64-bit octets
                 fragmentPayload.copyInto(payload, payloadPosition.toInt())
-                payloadPosition += fragmentPayload.size.toUInt()
             }
             return Pair(
                 Ipv4Header(
@@ -304,7 +305,6 @@ data class Ipv4Header(
      *     This procedure can be generalized for an n-way split, rather than
      *     the two-way split described.
      *
-     *     TODO: ensure the split occurs on the correct 8-octet/64-bit boundary!!!!!
      */
     fun fragment(
         maxSize: UInt,
@@ -317,12 +317,16 @@ data class Ipv4Header(
         // in order to fragment we need at least 1 byte of payload (which is why its <=)
         // this way we could make a large packet into a bunch of 1 byte payloads with headers if
         // we wanted
-        if (maxSize <= getHeaderLength()) {
-            throw IllegalArgumentException("Cannot fragment packets smaller than the minimum header size")
+        if (maxSize < IP4_MIN_FRAGMENT_PAYLOAD) {
+            throw IllegalArgumentException(
+                "The smallest fragment size is ${IP4_MIN_FRAGMENT_PAYLOAD.toInt()} bytes because it must align on a 64-bit boundary",
+            )
         }
         var payloadPerPacket = maxSize - getHeaderLength()
         var payloadPosition = 0u
         while (payloadPosition < payload.size.toUInt()) {
+            logger.debug("$payloadPosition:${payloadPosition + payloadPerPacket}")
+            val offsetIn64BitOctets = payloadPosition / 8u
             val newHeader =
                 Ipv4Header(
                     ihl = ihl,
@@ -332,23 +336,20 @@ data class Ipv4Header(
                     id = id,
                     dontFragment = false,
                     lastFragment = payloadPosition >= getHeaderLength(),
-                    fragmentOffset = payloadPosition.toUShort(),
+                    fragmentOffset = offsetIn64BitOctets.toUShort(),
                     ttl = ttl,
                     protocol = protocol,
                     sourceAddress = sourceAddress,
                     destinationAddress = destinationAddress,
                     options = options,
                 )
-            if (payloadPosition + payloadPerPacket > payload.size.toUInt()) {
-                payloadPerPacket = payload.size.toUInt() - payloadPosition
-            }
-            if (payloadPerPacket < 1u) {
-                break
-            }
-            logger.debug("$payloadPosition:${payloadPosition + payloadPerPacket}")
+            logger.debug("payload len:${newHeader.getPayloadLength()}")
             val newPayload = payload.copyOfRange(payloadPosition.toInt(), payloadPosition.toInt() + payloadPerPacket.toInt())
             packetList.add(Pair(newHeader, newPayload))
             payloadPosition += payloadPerPacket
+            if (payloadPosition + payloadPerPacket > payload.size.toUInt()) {
+                payloadPerPacket = payload.size.toUInt() - payloadPosition
+            }
         }
         return packetList
     }
