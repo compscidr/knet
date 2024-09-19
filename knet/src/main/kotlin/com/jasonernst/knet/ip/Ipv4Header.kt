@@ -305,6 +305,9 @@ data class Ipv4Header(
      *     This procedure can be generalized for an n-way split, rather than
      *     the two-way split described.
      *
+     *     When fragmentation occurs, some options are copied, but others
+     *     remain with the first fragment only.
+     *
      */
     fun fragment(
         maxSize: UInt,
@@ -324,12 +327,30 @@ data class Ipv4Header(
         }
         var payloadPerPacket = maxSize - getHeaderLength()
         var payloadPosition = 0u
+        var isFirstFragment = true
         while (payloadPosition < payload.size.toUInt()) {
             logger.debug("$payloadPosition:${payloadPosition + payloadPerPacket}")
             val offsetIn64BitOctets = payloadPosition / 8u
+            var newOptions = options
+            var newIhl = ihl
+
+            if (isFirstFragment.not()) {
+                newOptions = mutableListOf<Ipv4Option>()
+                for (option in options) {
+                    if (option.isCopied) {
+                        newOptions.add(option)
+                    }
+                }
+                val newOptionsLength = newOptions.sumOf { it.size.toInt() }.toUInt()
+                newIhl =
+                    ceil((IP4_MIN_HEADER_LENGTH.toDouble() + newOptionsLength.toDouble()) / IP4_WORD_LENGTH.toDouble()).toUInt().toUByte()
+            } else {
+                isFirstFragment = false
+            }
+
             val newHeader =
                 Ipv4Header(
-                    ihl = ihl,
+                    ihl = newIhl,
                     dscp = dscp,
                     ecn = ecn,
                     totalLength = (getHeaderLength() + payloadPerPacket).toUShort(),
@@ -341,7 +362,7 @@ data class Ipv4Header(
                     protocol = protocol,
                     sourceAddress = sourceAddress,
                     destinationAddress = destinationAddress,
-                    options = options,
+                    options = newOptions,
                 )
             logger.debug("payload len:${newHeader.getPayloadLength()}")
             val newPayload = payload.copyOfRange(payloadPosition.toInt(), payloadPosition.toInt() + payloadPerPacket.toInt())
