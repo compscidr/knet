@@ -23,6 +23,17 @@ import java.nio.ByteOrder
  * Encapsulating Security Payload header (note 2)
  * Destination Options header (note 3)
  * Upper-Layer header
+ *
+ *       note 1: for options to be processed by the first destination that
+ *               appears in the IPv6 Destination Address field plus
+ *               subsequent destinations listed in the Routing header.
+ *
+ *       note 2: additional recommendations regarding the relative order of
+ *               the Authentication and Encapsulating Security Payload
+ *               headers are given in [RFC4303].
+ *
+ *       note 3: for options to be processed only by the final destination
+ *               of the packet.
  */
 open class Ipv6ExtensionHeader(
     open val nextHeader: UByte,
