@@ -9,9 +9,7 @@ Kotlin user-space network stack. This can be used for:
 
 ## What is implemented
 - [x] IPv4:
-  - [x] WiP: RFC 791: https://datatracker.ietf.org/doc/html/rfc791
-    - TODO: fragmentation and reassembly
-    - Packet Fragmentation in Inter-Network Protocols, Computer Networks
+  - [x] RFC 791: https://datatracker.ietf.org/doc/html/rfc791
   - [ ] RFC 4632: https://datatracker.ietf.org/doc/html/rfc4632
   - [ ] RFC 6864: https://datatracker.ietf.org/doc/html/rfc6864
   - [ ] RFC 1349 https://datatracker.ietf.org/doc/html/rfc1349
