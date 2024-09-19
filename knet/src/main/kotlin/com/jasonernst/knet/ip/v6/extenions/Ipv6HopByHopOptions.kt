@@ -2,20 +2,20 @@ package com.jasonernst.knet.ip.v6.extenions
 
 import com.jasonernst.knet.ip.IpType
 
-data class Ipv6HopByHopOption(
+data class Ipv6HopByHopOptions(
     override val nextHeader: UByte = IpType.TCP.value,
     override val length: UByte = 0u,
     override val data: ByteArray = ByteArray(0),
 ) : Ipv6ExtensionHeader(nextHeader, length, data) {
     companion object {
-        private val logger = org.slf4j.LoggerFactory.getLogger(Ipv6HopByHopOption::class.java)
+        private val logger = org.slf4j.LoggerFactory.getLogger(Ipv6HopByHopOptions::class.java)
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as Ipv6HopByHopOption
+        other as Ipv6HopByHopOptions
 
         if (nextHeader != other.nextHeader) return false
         if (length != other.length) return false

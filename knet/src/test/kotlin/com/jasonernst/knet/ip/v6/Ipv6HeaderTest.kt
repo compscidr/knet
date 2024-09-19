@@ -3,7 +3,7 @@ package com.jasonernst.knet.ip.v6
 import com.jasonernst.knet.PacketTooShortException
 import com.jasonernst.knet.ip.IpHeader
 import com.jasonernst.knet.ip.v6.extenions.Ipv6ExtensionHeader
-import com.jasonernst.knet.ip.v6.extenions.Ipv6HopByHopOption
+import com.jasonernst.knet.ip.v6.extenions.Ipv6HopByHopOptions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -43,7 +43,7 @@ class Ipv6HeaderTest {
 
     @Test
     fun extensionHeaderTest() {
-        val ipv6Header = Ipv6Header(extensionHeaders = listOf(Ipv6HopByHopOption()))
+        val ipv6Header = Ipv6Header(extensionHeaders = listOf(Ipv6HopByHopOptions()))
         val stream = ByteBuffer.wrap(ipv6Header.toByteArray())
         val parsedHeader = IpHeader.fromStream(stream)
         assertEquals(ipv6Header, parsedHeader)
@@ -51,25 +51,25 @@ class Ipv6HeaderTest {
 
     @Test
     fun hopByHopHashCode() {
-        val map: MutableMap<Ipv6HopByHopOption, Int> = mutableMapOf()
-        val ipv6HopByHopOption = Ipv6HopByHopOption()
-        map[ipv6HopByHopOption] = 1
-        assertTrue(map.containsKey(ipv6HopByHopOption))
+        val map: MutableMap<Ipv6HopByHopOptions, Int> = mutableMapOf()
+        val ipv6HopByHopOptions = Ipv6HopByHopOptions()
+        map[ipv6HopByHopOptions] = 1
+        assertTrue(map.containsKey(ipv6HopByHopOptions))
     }
 
     @Test
     fun notEquals() {
-        val ipv6HopByHopOption = Ipv6HopByHopOption()
+        val ipv6HopByHopOptions = Ipv6HopByHopOptions()
         val otherOption = Ipv6ExtensionHeader(0u, 0u, ByteArray(0))
-        assertFalse(ipv6HopByHopOption == otherOption)
+        assertFalse(ipv6HopByHopOptions == otherOption)
 
-        val ipv6HopByHopOption2 = Ipv6HopByHopOption(nextHeader = 0u)
-        assertFalse(ipv6HopByHopOption == ipv6HopByHopOption2)
+        val ipv6HopByHopOptions2 = Ipv6HopByHopOptions(nextHeader = 0u)
+        assertFalse(ipv6HopByHopOptions == ipv6HopByHopOptions2)
 
-        val ipv6HopByHopOption3 = Ipv6HopByHopOption(length = 5u)
-        assertFalse(ipv6HopByHopOption == ipv6HopByHopOption3)
+        val ipv6HopByHopOptions3 = Ipv6HopByHopOptions(length = 5u)
+        assertFalse(ipv6HopByHopOptions == ipv6HopByHopOptions3)
 
-        val ipv6HopByHopOption4 = Ipv6HopByHopOption(data = ByteArray(1))
-        assertFalse(ipv6HopByHopOption == ipv6HopByHopOption4)
+        val ipv6HopByHopOptions4 = Ipv6HopByHopOptions(data = ByteArray(1))
+        assertFalse(ipv6HopByHopOptions == ipv6HopByHopOptions4)
     }
 }

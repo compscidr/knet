@@ -68,7 +68,7 @@ open class Ipv6ExtensionHeader(
 
                 when (currentHeader) {
                     IpType.HOPOPT -> {
-                        extensionList.add(Ipv6HopByHopOption(nextHeader, length, data))
+                        extensionList.add(Ipv6HopByHopOptions(nextHeader, length, data))
                     }
                     else -> {
                         throw IllegalArgumentException("Unsupported IPv6 extension header: $currentHeader")
