@@ -1,6 +1,7 @@
 package com.jasonernst.knet.ip.v6.extenions
 
 import com.jasonernst.knet.ip.IpType
+import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.ceil
@@ -51,8 +52,12 @@ data class Ipv6HopByHopOptions(
     }
 
     companion object {
+        private val logger = LoggerFactory.getLogger(Ipv6HopByHopOptions::class.java)
         const val MIN_LENGTH: UByte = 2u // next header and length with no actual option data
 
+        /**
+         * Assumes that the stream has already had the nextHeader and length parsed from it
+         */
         fun fromStream(
             stream: ByteBuffer,
             nextheader: UByte,
@@ -61,7 +66,9 @@ data class Ipv6HopByHopOptions(
             val optionData = mutableListOf<Ipv6Tlv>()
             val start = stream.position()
             while (stream.position() - start < length.toInt()) {
-                optionData.add(Ipv6Tlv.fromStream(stream))
+                val nextTlv = Ipv6Tlv.fromStream(stream)
+                logger.debug("Parsed TLV: {}", nextTlv)
+                optionData.add(nextTlv)
             }
             return Ipv6HopByHopOptions(nextheader, length, optionData)
         }
