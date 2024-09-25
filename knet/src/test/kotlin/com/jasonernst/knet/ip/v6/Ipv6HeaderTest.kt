@@ -4,6 +4,8 @@ import com.jasonernst.knet.PacketTooShortException
 import com.jasonernst.knet.ip.IpHeader
 import com.jasonernst.knet.ip.v6.extenions.Ipv6ExtensionHeader
 import com.jasonernst.knet.ip.v6.extenions.Ipv6HopByHopOptions
+import com.jasonernst.knet.ip.v6.extenions.Ipv6Tlv
+import com.jasonernst.knet.ip.v6.extenions.type.Ipv6DestinationHopByHopType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -60,16 +62,17 @@ class Ipv6HeaderTest {
     @Test
     fun notEquals() {
         val ipv6HopByHopOptions = Ipv6HopByHopOptions()
-        val otherOption = Ipv6ExtensionHeader(0u, 0u, ByteArray(0))
+        val otherOption = Ipv6ExtensionHeader(0u, 0u)
         assertFalse(ipv6HopByHopOptions == otherOption)
 
         val ipv6HopByHopOptions2 = Ipv6HopByHopOptions(nextHeader = 0u)
         assertFalse(ipv6HopByHopOptions == ipv6HopByHopOptions2)
 
-        val ipv6HopByHopOptions3 = Ipv6HopByHopOptions(length = 5u)
+        val ipv6HopByHopOptions3 =
+            Ipv6HopByHopOptions(length = 2u, optionData = listOf(Ipv6Tlv(Ipv6DestinationHopByHopType.PadN, 12u, ByteArray(12))))
         assertFalse(ipv6HopByHopOptions == ipv6HopByHopOptions3)
 
-        val ipv6HopByHopOptions4 = Ipv6HopByHopOptions(data = ByteArray(1))
-        assertFalse(ipv6HopByHopOptions == ipv6HopByHopOptions4)
+//        val ipv6HopByHopOptions4 = Ipv6HopByHopOptions()
+//        assertFalse(ipv6HopByHopOptions == ipv6HopByHopOptions4)
     }
 }

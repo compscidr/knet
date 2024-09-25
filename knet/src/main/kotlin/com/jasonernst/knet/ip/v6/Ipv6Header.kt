@@ -75,9 +75,11 @@ data class Ipv6Header(
             val destinationBuffer = ByteArray(16)
             stream[destinationBuffer]
             val destinationAddress = Inet6Address.getByAddress(destinationBuffer) as Inet6Address
-            val extensionHeaders = Ipv6ExtensionHeader.fromStream(stream,
-                IpType.fromValue(protocol)
-            )
+            val extensionHeaders =
+                Ipv6ExtensionHeader.fromStream(
+                    stream,
+                    IpType.fromValue(protocol),
+                )
 
             return Ipv6Header(
                 ipVersion,
@@ -113,7 +115,15 @@ data class Ipv6Header(
         return buffer.array()
     }
 
-    override fun getHeaderLength(): UShort = (IP6_HEADER_SIZE + (extensionHeaders.sumOf { it.getExtensionLength() }).toUShort()).toUShort()
+    override fun getHeaderLength(): UShort =
+        (
+            IP6_HEADER_SIZE +
+                (
+                    extensionHeaders.sumOf {
+                        it.getExtensionLengthInBytes()
+                    }
+                ).toUShort()
+        ).toUShort()
 
     override fun getTotalLength(): UShort = (getHeaderLength() + payloadLength).toUShort()
 

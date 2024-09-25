@@ -2,19 +2,6 @@ package com.jasonernst.knet.ip.v4.options
 
 import com.jasonernst.knet.PacketTooShortException
 import com.jasonernst.knet.ip.v4.Ipv4Header
-import com.jasonernst.knet.ip.v4.options.Ipv4Option
-import com.jasonernst.knet.ip.v4.options.Ipv4OptionClassType
-import com.jasonernst.knet.ip.v4.options.Ipv4OptionEndOfOptionList
-import com.jasonernst.knet.ip.v4.options.Ipv4OptionInternetTimestamp
-import com.jasonernst.knet.ip.v4.options.Ipv4OptionLooseSourceAndRecordRoute
-import com.jasonernst.knet.ip.v4.options.Ipv4OptionNoOperation
-import com.jasonernst.knet.ip.v4.options.Ipv4OptionRecordRoute
-import com.jasonernst.knet.ip.v4.options.Ipv4OptionSecurity
-import com.jasonernst.knet.ip.v4.options.Ipv4OptionSecurityType
-import com.jasonernst.knet.ip.v4.options.Ipv4OptionStreamIdentifier
-import com.jasonernst.knet.ip.v4.options.Ipv4OptionStrictSourceAndRecordRoute
-import com.jasonernst.knet.ip.v4.options.Ipv4OptionType
-import com.jasonernst.knet.ip.v4.options.Ipv4OptionUnknown
 import com.jasonernst.knet.transport.tcp.options.TcpOptionNoOperation
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals

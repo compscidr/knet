@@ -79,8 +79,8 @@ abstract class Ipv4Option(
                                     stream,
                                     isCopied,
                                     optionClass,
-                                    length
-                                )
+                                    length,
+                                ),
                             )
                         }
                         Ipv4OptionType.LooseSourceRouting.kind -> {
@@ -89,8 +89,8 @@ abstract class Ipv4Option(
                                     stream,
                                     isCopied,
                                     optionClass,
-                                    length
-                                )
+                                    length,
+                                ),
                             )
                         }
                         Ipv4OptionType.StrictSourceRouting.kind -> {
@@ -99,8 +99,8 @@ abstract class Ipv4Option(
                                     stream,
                                     isCopied,
                                     optionClass,
-                                    length
-                                )
+                                    length,
+                                ),
                             )
                         }
                         Ipv4OptionType.RecordRoute.kind -> {
@@ -109,8 +109,8 @@ abstract class Ipv4Option(
                                     stream,
                                     isCopied,
                                     optionClass,
-                                    length
-                                )
+                                    length,
+                                ),
                             )
                         }
                         Ipv4OptionType.StreamId.kind -> {
@@ -119,8 +119,8 @@ abstract class Ipv4Option(
                                     stream,
                                     isCopied,
                                     optionClass,
-                                    length
-                                )
+                                    length,
+                                ),
                             )
                         }
                         Ipv4OptionType.TimeStamp.kind -> {
@@ -129,8 +129,8 @@ abstract class Ipv4Option(
                                     stream,
                                     isCopied,
                                     optionClass,
-                                    length
-                                )
+                                    length,
+                                ),
                             )
                         }
                         else -> {

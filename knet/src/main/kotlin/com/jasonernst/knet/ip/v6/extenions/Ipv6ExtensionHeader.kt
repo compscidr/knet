@@ -57,19 +57,28 @@ import java.nio.ByteOrder
  */
 open class Ipv6ExtensionHeader(
     open val nextHeader: UByte,
-    open val length: UByte,
-    open val data: ByteArray,
+    open val length: UByte, // measured in 64-bit / 8-octet units
 ) {
-    fun toByteArray(order: ByteOrder = ByteOrder.BIG_ENDIAN): ByteArray {
-        val buffer = ByteBuffer.allocate(2 + data.size * 8)
+    /**
+     * This should be called by the subclass to serialize the extension header to a byte array.
+     * They can serialize their own data.
+     */
+    open fun toByteArray(order: ByteOrder = ByteOrder.BIG_ENDIAN): ByteArray {
+        val buffer = ByteBuffer.allocate(2)
         buffer.order(order)
         buffer.put(nextHeader.toByte())
         buffer.put(length.toByte())
-        buffer.put(data)
         return buffer.array()
     }
 
-    fun getExtensionLength(): Int = 2 + data.size * 8
+    /**
+     * Returns the actual length in bytes of the extension header
+     * because the length field measures in 8-octet units.
+     *
+     * This just simply multiplies it by 8, so it would include
+     * zero padding.
+     */
+    fun getExtensionLengthInBytes(): Int = (length * 8u).toInt()
 
     companion object {
         /**
@@ -81,14 +90,15 @@ open class Ipv6ExtensionHeader(
          * Authentication
          * Encapsulating Security Payload
          */
-        val requiredExtensionHeaders = listOf(
-            IpType.HOPOPT,
-            IpType.IPV6_FRAG,
-            IpType.IPV6_OPTS,
-            IpType.IPV6_ROUTE,
-            IpType.AH,
-            IpType.ESP
-        )
+        val requiredExtensionHeaders =
+            listOf(
+                IpType.HOPOPT,
+                IpType.IPV6_FRAG,
+                IpType.IPV6_OPTS,
+                IpType.IPV6_ROUTE,
+                IpType.AH,
+                IpType.ESP,
+            )
 
         /**
          * This will continue to process IPv6 extension headers until the nextheader is not one, ie)
@@ -106,14 +116,29 @@ open class Ipv6ExtensionHeader(
                 }
                 val nextHeader = stream.get().toUByte()
                 val length = stream.get().toUByte()
-                val data = ByteArray(length.toInt() * 8)
-                stream.get(data)
 
                 when (currentHeader) {
                     IpType.HOPOPT -> {
-                        extensionList.add(Ipv6HopByHopOptions(nextHeader, length, data))
+                        extensionList.add(Ipv6HopByHopOptions.fromStream(stream, nextHeader, length))
+                    }
+                    IpType.IPV6_FRAG -> {
+                        extensionList.add(Ipv6Fragment.fromStream(stream, nextHeader))
+                    }
+                    IpType.IPV6_OPTS -> {
+                        extensionList.add(Ipv6DestinationOptions.fromStream(stream, nextHeader, length))
+                    }
+                    IpType.IPV6_ROUTE -> {
+                        extensionList.add(Ipv6Routing.fromStream(stream, nextHeader, length))
+                    }
+                    IpType.AH -> {
+                        extensionList.add(Ipv6Authentication.fromStream(stream, nextHeader, length))
+                    }
+                    IpType.ESP -> {
+                        extensionList.add(Ipv6EncapsulatingSecurityPayload.fromStream(stream, nextHeader, length))
                     }
                     else -> {
+                        // todo: pass over the unsupported extension header leaving the stream position just
+                        //  beyond it, log a warning, and return an "Unsupported Ipv6 extension header" object
                         throw IllegalArgumentException("Unsupported IPv6 extension header: $currentHeader")
                     }
                 }
