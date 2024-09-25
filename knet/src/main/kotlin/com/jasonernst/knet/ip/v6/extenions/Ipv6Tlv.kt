@@ -119,7 +119,9 @@ data class Ipv6Tlv(
 ) {
     init {
         if (optionDataLength.toInt() != optionData.size) {
-            logger.warn("Option data length does not match option data size")
+            throw IllegalArgumentException(
+                "Option data length does not match option data size, have ${optionData.size} but expected ${optionDataLength.toInt()}",
+            )
         }
     }
 
