@@ -5,10 +5,10 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 data class Ipv6DestinationOptions(
-    override val nextHeader: UByte = IpType.TCP.value,
+    override var nextHeader: UByte = IpType.TCP.value,
     override val length: UByte = 0u,
     val optionData: List<Ipv6Tlv> = emptyList(),
-) : Ipv6ExtensionHeader(nextHeader, length) {
+) : Ipv6ExtensionHeader(IpType.IPV6_OPTS, nextHeader, length) {
     companion object {
         const val MIN_LENGTH = 2 // next header and length with no actual option data
 

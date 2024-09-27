@@ -8,9 +8,9 @@ import java.nio.ByteOrder
  * https://datatracker.ietf.org/doc/html/rfc4303
  */
 class Ipv6EncapsulatingSecurityPayload(
-    override val nextHeader: UByte = IpType.TCP.value,
+    override var nextHeader: UByte = IpType.TCP.value,
     override val length: UByte = MIN_LENGTH,
-) : Ipv6ExtensionHeader(nextHeader = nextHeader, length = length) {
+) : Ipv6ExtensionHeader(IpType.ESP, nextHeader = nextHeader, length = length) {
     companion object {
         const val MIN_LENGTH: UByte = 2u // next header and length with no actual option data
 

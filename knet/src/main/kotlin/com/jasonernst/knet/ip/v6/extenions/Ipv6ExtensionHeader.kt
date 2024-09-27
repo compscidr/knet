@@ -56,7 +56,8 @@ import java.nio.ByteOrder
  * that recommendation.
  */
 open class Ipv6ExtensionHeader(
-    open val nextHeader: UByte,
+    val type: IpType,
+    open var nextHeader: UByte,
     open val length: UByte, // measured in 64-bit / 8-octet units
 ) {
     /**

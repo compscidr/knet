@@ -71,11 +71,11 @@ import java.nio.ByteOrder
  *    can be found in [RFC5871].
  */
 data class Ipv6Routing(
-    override val nextHeader: UByte = IpType.TCP.value,
+    override var nextHeader: UByte = IpType.TCP.value,
     override val length: UByte = MIN_LENGTH,
     val routingType: Ipv6RoutingType,
     val segmentsLeft: UByte,
-) : Ipv6ExtensionHeader(nextHeader, length) {
+) : Ipv6ExtensionHeader(IpType.IPV6_ROUTE, nextHeader, length) {
     companion object {
         const val MIN_LENGTH: UByte = 4u // next header, length, routing type, and segments left
 

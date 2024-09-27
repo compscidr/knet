@@ -30,10 +30,10 @@ import kotlin.math.ceil
  *                           in Section 4.2.
  */
 data class Ipv6HopByHopOptions(
-    override val nextHeader: UByte = IpType.TCP.value,
+    override var nextHeader: UByte = IpType.TCP.value,
     override val length: UByte = ceil((MIN_LENGTH.toDouble() + Ipv6Tlv().size()) / 8.0).toUInt().toUByte(),
     val optionData: List<Ipv6Tlv> = listOf(Ipv6Tlv()),
-) : Ipv6ExtensionHeader(nextHeader, length) {
+) : Ipv6ExtensionHeader(IpType.HOPOPT, nextHeader, length) {
     init {
         // dummy check to make sure the length is a multiple of 8
         val optionLength = optionData.sumOf { it.size() }

@@ -5,6 +5,8 @@ import com.jasonernst.knet.ip.IpHeader
 import com.jasonernst.knet.ip.IpHeader.Companion.IP6_VERSION
 import com.jasonernst.knet.ip.IpType
 import com.jasonernst.knet.ip.v6.extenions.Ipv6ExtensionHeader
+import com.jasonernst.knet.ip.v6.extenions.Ipv6Fragment
+import com.jasonernst.knet.nextheader.NextHeader
 import org.slf4j.LoggerFactory
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -36,6 +38,17 @@ data class Ipv6Header(
     companion object {
         private val logger = LoggerFactory.getLogger(Ipv6Header::class.java)
         private const val IP6_HEADER_SIZE: UShort = 40u // ipv6 header is not variable like ipv4
+
+        // The Per-Fragment headers must consist of the IPv6 header plus any
+        //      extension headers that must be processed by nodes en route to the
+        //      destination, that is, all headers up to and including the Routing
+        //      header if present
+        private val onRouteHeaders =
+            listOf(
+                IpType.HOPOPT,
+                IpType.IPV6_OPTS,
+                IpType.IPV6_ROUTE,
+            )
 
         fun fromStream(stream: ByteBuffer): Ipv6Header {
             val start = stream.position()
@@ -93,6 +106,189 @@ data class Ipv6Header(
                 extensionHeaders,
             )
         }
+
+        fun reassemble(fragments: List<Triple<Ipv6Header, NextHeader?, ByteArray>>): Triple<Ipv6Header, NextHeader, ByteArray> {
+            if (fragments.isEmpty()) {
+                throw IllegalArgumentException("No fragments to reassemble")
+            }
+
+            val extensionHeaders = mutableListOf<Ipv6ExtensionHeader>()
+            for (extensionHeader in fragments[0].first.extensionHeaders) {
+                if (extensionHeader.type == IpType.IPV6_FRAG) {
+                    continue
+                }
+                extensionHeaders.add(extensionHeader)
+            }
+            val payloadLength =
+                fragments.sumOf {
+                    it.third.size
+                } +
+                    extensionHeaders.sumOf {
+                        it.getExtensionLengthInBytes()
+                    } + fragments[0].second!!.getHeaderLength().toInt()
+
+            val ipv6Header =
+                Ipv6Header(
+                    version = fragments[0].first.version,
+                    trafficClass = fragments[0].first.trafficClass,
+                    flowLabel = fragments[0].first.flowLabel,
+                    payloadLength = payloadLength.toUShort(),
+                    protocol = fragments[0].first.protocol,
+                    hopLimit = fragments[0].first.hopLimit,
+                    sourceAddress = fragments[0].first.sourceAddress,
+                    destinationAddress = fragments[0].first.destinationAddress,
+                    extensionHeaders = extensionHeaders,
+                )
+
+            val payload =
+                fragments
+                    .flatMap {
+                        it.third.toList()
+                    }.toByteArray()
+
+            val nextHeader = fragments.first().second
+
+            return Triple(ipv6Header, nextHeader!!, payload)
+        }
+    }
+
+    /**
+     * Fragments this ipv6 header into smaller fragments. The fragments have:
+     * 1) an Ipv6 header with different sets of extension headers, depending on if its the first
+     *    fragment or not
+     * 2) a next header that is either the next header in the original packet or null if it is a
+     *    fragment
+     * 3) a payload that is a subset of the original payload
+     */
+    fun fragment(
+        maxSize: UInt,
+        nextHeader: NextHeader,
+        payload: ByteArray,
+    ): List<Triple<Ipv6Header, NextHeader?, ByteArray>> {
+        if (maxSize.toInt() % 8 != 0) {
+            throw IllegalArgumentException("Max size must be a multiple of 8")
+        }
+
+        val fragments = mutableListOf<Triple<Ipv6Header, NextHeader?, ByteArray>>()
+
+        val perFragmentHeaders = mutableListOf<Ipv6ExtensionHeader>()
+
+        // need to figure out type because this could be a mix of extension and upper layer headers (tcp)
+        val nonPerFragmentExtensionHeaders = mutableListOf<Ipv6ExtensionHeader>()
+
+        // up to an including the routing header if they exist
+        for (extensionHeader in extensionHeaders) {
+            if (onRouteHeaders.contains(extensionHeader.type)) {
+                perFragmentHeaders.add(extensionHeader)
+            } else {
+                nonPerFragmentExtensionHeaders.add(extensionHeader)
+            }
+        }
+
+        if (perFragmentHeaders.isNotEmpty()) {
+            perFragmentHeaders.last().nextHeader = IpType.IPV6_FRAG.value
+        }
+
+        val perFragmentHeaderBytes =
+            perFragmentHeaders.sumOf {
+                it.getExtensionLengthInBytes()
+            }
+        val extAndUpperBytes =
+            nonPerFragmentExtensionHeaders.sumOf {
+                it.getExtensionLengthInBytes()
+            } + nextHeader.getHeaderLength().toInt()
+
+        val fragmentHeaderNextHeader =
+            if (nonPerFragmentExtensionHeaders.isEmpty()) {
+                nextHeader.protocol
+            } else {
+                nonPerFragmentExtensionHeaders.first().type.value
+            }
+
+        val firstFragmentHeader =
+            Ipv6Fragment(
+                nextHeader = fragmentHeaderNextHeader,
+                fragmentOffset = 0u,
+                moreFlag = true,
+                identification = Ipv6Fragment.globalIdentificationCounter++,
+            )
+
+        val firstHeaderExtensions = mutableListOf<Ipv6ExtensionHeader>()
+        firstHeaderExtensions.addAll(perFragmentHeaders)
+        firstHeaderExtensions.add(firstFragmentHeader)
+        firstHeaderExtensions.addAll(nonPerFragmentExtensionHeaders)
+
+        val firstFragment =
+            Ipv6Header(
+                version,
+                trafficClass,
+                flowLabel,
+                (maxSize - IP6_HEADER_SIZE).toUShort(),
+                if (nonPerFragmentExtensionHeaders.isEmpty()) {
+                    protocol
+                } else {
+                    IpType.IPV6_FRAG.value
+                },
+                hopLimit,
+                sourceAddress,
+                destinationAddress,
+                firstHeaderExtensions,
+            )
+        val firstPayloadBytes = maxSize - IP6_HEADER_SIZE - perFragmentHeaderBytes.toUInt() - extAndUpperBytes.toUInt()
+        val firstPair = Triple(firstFragment, nextHeader, payload.sliceArray(0 until firstPayloadBytes.toInt()))
+        fragments.add(firstPair)
+        var payloadPosition = firstPayloadBytes.toInt()
+
+        while (payloadPosition < payload.size) {
+            val nextPayloadBytes =
+                minOf(
+                    (payload.size - payloadPosition).toUInt(),
+                    maxSize - IP6_HEADER_SIZE - perFragmentHeaderBytes.toUInt(),
+                )
+            val moreFlag = nextPayloadBytes >= maxSize - IP6_HEADER_SIZE - perFragmentHeaderBytes.toUInt()
+
+            val nextFragment =
+                Ipv6Fragment(
+                    nextHeader = fragmentHeaderNextHeader,
+                    fragmentOffset = (payloadPosition / 8).toUShort(),
+                    moreFlag = moreFlag,
+                    identification = firstFragmentHeader.identification,
+                )
+
+            val nextHeaderExtensions = mutableListOf<Ipv6ExtensionHeader>()
+            nextHeaderExtensions.addAll(perFragmentHeaders)
+            nextHeaderExtensions.add(nextFragment)
+
+            val nextFragmentHeader =
+                Ipv6Header(
+                    version,
+                    trafficClass,
+                    flowLabel,
+                    (maxSize - IP6_HEADER_SIZE).toUShort(),
+                    if (nonPerFragmentExtensionHeaders.isEmpty()) {
+                        protocol
+                    } else {
+                        IpType.IPV6_FRAG.value
+                    },
+                    hopLimit,
+                    sourceAddress,
+                    destinationAddress,
+                    nextHeaderExtensions,
+                )
+
+            val nextPair =
+                Triple(
+                    nextFragmentHeader,
+                    null,
+                    payload.sliceArray(
+                        payloadPosition until (payloadPosition + nextPayloadBytes.toInt()),
+                    ),
+                )
+            fragments.add(nextPair)
+            payloadPosition += nextPayloadBytes.toInt()
+        }
+
+        return fragments
     }
 
     override fun toByteArray(order: ByteOrder): ByteArray {
