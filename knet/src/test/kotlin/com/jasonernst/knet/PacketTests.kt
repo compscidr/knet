@@ -6,8 +6,10 @@ import com.jasonernst.knet.ip.v4.Ipv4Header
 import com.jasonernst.knet.ip.v6.Ipv6Header
 import com.jasonernst.knet.transport.tcp.TcpHeader
 import com.jasonernst.knet.transport.udp.UdpHeader
+import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -59,7 +61,7 @@ class PacketTests {
     }
 
     @Test
-    fun notEquals() {
+    fun equalityChecks() {
         val ipHeader = Ipv4Header()
         val tcpHeader = TcpHeader()
         val packet = Packet(ipHeader, tcpHeader, ByteArray(0))
@@ -76,5 +78,14 @@ class PacketTests {
 
         val packet4 = Packet(ipHeader, tcpHeader, ByteArray(1))
         assertFalse(packet == packet4)
+
+        assertNotEquals(packet, null)
+        assertNotEquals(packet, Any())
+        assertEquals(packet, packet)
+
+        val packet5 = packet.copy()
+        assertEquals(packet.ipHeader, packet5.ipHeader)
+        assertEquals(packet.nextHeaders, packet5.nextHeaders)
+        assertArrayEquals(packet.payload, packet5.payload)
     }
 }

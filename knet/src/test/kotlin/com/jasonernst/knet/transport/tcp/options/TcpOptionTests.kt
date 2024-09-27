@@ -338,6 +338,9 @@ class TcpOptionTests {
         val option1 = TcpOptionUnsupported(88u, ByteArray(0))
         val option2 = TcpOptionUnsupported(88u, ByteArray(0))
         assertEquals(option1, option2)
+        assertEquals(option1, option1)
+        assertNotEquals(option1, Any())
+        assertNotEquals(option1, null)
 
         val option3 = TcpOptionUnsupported(88u, ByteArray(1))
         assertNotEquals(option1, option3)
