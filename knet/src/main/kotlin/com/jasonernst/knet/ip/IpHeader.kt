@@ -20,6 +20,13 @@ interface IpHeader {
         const val IP4_VERSION: UByte = 4u
         const val IP6_VERSION: UByte = 6u
 
+        /**
+         * Helper function so that we can ensure the payload length is a multiple of 8
+         */
+        fun closestDivisibleBy(initialValue: UInt, divisor: UInt): UInt {
+            return (initialValue + divisor - 1u) / divisor * divisor
+        }
+
         fun fromStream(stream: ByteBuffer): IpHeader {
             val start = stream.position()
             if (stream.remaining() < 1) {

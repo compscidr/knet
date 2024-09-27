@@ -3,6 +3,7 @@ package com.jasonernst.knet.ip.v6
 import com.jasonernst.knet.PacketTooShortException
 import com.jasonernst.knet.ip.IpHeader
 import com.jasonernst.knet.ip.IpHeader.Companion.IP6_VERSION
+import com.jasonernst.knet.ip.IpHeader.Companion.closestDivisibleBy
 import com.jasonernst.knet.ip.IpType
 import com.jasonernst.knet.ip.v6.extenions.Ipv6ExtensionHeader
 import com.jasonernst.knet.ip.v6.extenions.Ipv6Fragment
@@ -61,7 +62,7 @@ data class Ipv6Header(
             // ensure we have an IPv6 packet
             val versionAndHeaderLength = stream.get().toUByte()
             val ipVersion = (versionAndHeaderLength.toInt() shr 4 and 0x0F).toUByte()
-            if (ipVersion != IpHeader.IP6_VERSION) {
+            if (ipVersion != IP6_VERSION) {
                 throw IllegalArgumentException("Invalid IPv6 header. IP version should be 6 but was $ipVersion")
             }
 
@@ -112,12 +113,17 @@ data class Ipv6Header(
                 throw IllegalArgumentException("No fragments to reassemble")
             }
 
+            var firstFragmentHeader: Ipv6Fragment? = null
             val extensionHeaders = mutableListOf<Ipv6ExtensionHeader>()
             for (extensionHeader in fragments[0].first.extensionHeaders) {
                 if (extensionHeader.type == IpType.IPV6_FRAG) {
+                    firstFragmentHeader = extensionHeader as Ipv6Fragment
                     continue
                 }
                 extensionHeaders.add(extensionHeader)
+            }
+            if (firstFragmentHeader == null) {
+                throw IllegalArgumentException("First fragment does not contain a fragment header")
             }
             val payloadLength =
                 fragments.sumOf {
@@ -140,11 +146,26 @@ data class Ipv6Header(
                     extensionHeaders = extensionHeaders,
                 )
 
-            val payload =
-                fragments
-                    .flatMap {
-                        it.third.toList()
-                    }.toByteArray()
+            val nonHeaderPayloadLength = fragments.sumOf { it.third.size }
+            val payload = ByteArray(nonHeaderPayloadLength)
+            for (fragment in fragments) {
+                val extensionHeaders = fragment.first.extensionHeaders
+                var fragmentHeader: Ipv6Fragment? = null
+                for (extensionHeader in extensionHeaders) {
+                    if (extensionHeader.type == IpType.IPV6_FRAG) {
+                        fragmentHeader = extensionHeader as Ipv6Fragment
+                        break
+                    }
+                }
+                if (fragmentHeader == null) {
+                    throw IllegalArgumentException("Fragment does not contain a fragment header")
+                }
+                if (fragmentHeader.identification != firstFragmentHeader.identification) {
+                    throw IllegalArgumentException("Fragment identification does not match first fragment")
+                }
+                val payloadPosition = fragmentHeader.fragmentOffset.toInt() * 8
+                fragment.third.copyInto(payload, payloadPosition)
+            }
 
             val nextHeader = fragments.first().second
 
@@ -234,7 +255,7 @@ data class Ipv6Header(
                 destinationAddress,
                 firstHeaderExtensions,
             )
-        val firstPayloadBytes = maxSize - IP6_HEADER_SIZE - perFragmentHeaderBytes.toUInt() - extAndUpperBytes.toUInt()
+        val firstPayloadBytes = closestDivisibleBy(maxSize - IP6_HEADER_SIZE - perFragmentHeaderBytes.toUInt() - extAndUpperBytes.toUInt(), 8u)
         val firstPair = Triple(firstFragment, nextHeader, payload.sliceArray(0 until firstPayloadBytes.toInt()))
         fragments.add(firstPair)
         var payloadPosition = firstPayloadBytes.toInt()

@@ -4,6 +4,7 @@ import com.jasonernst.icmp_common.Checksum
 import com.jasonernst.knet.PacketTooShortException
 import com.jasonernst.knet.ip.IpHeader
 import com.jasonernst.knet.ip.IpHeader.Companion.IP4_VERSION
+import com.jasonernst.knet.ip.IpHeader.Companion.closestDivisibleBy
 import com.jasonernst.knet.ip.IpType
 import com.jasonernst.knet.ip.v4.options.Ipv4Option
 import com.jasonernst.knet.ip.v4.options.Ipv4Option.Companion.parseOptions
@@ -327,7 +328,7 @@ data class Ipv4Header(
                 "The smallest fragment size is ${IP4_MIN_FRAGMENT_PAYLOAD.toInt()} bytes because it must align on a 64-bit boundary",
             )
         }
-        var payloadPerPacket = maxSize - getHeaderLength()
+        var payloadPerPacket = closestDivisibleBy(maxSize - getHeaderLength(), 8u)
         var payloadPosition = 0u
         var isFirstFragment = true
         while (payloadPosition < payload.size.toUInt()) {
