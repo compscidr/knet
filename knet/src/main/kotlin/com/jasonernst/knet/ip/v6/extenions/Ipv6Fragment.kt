@@ -266,7 +266,7 @@ import kotlin.experimental.and
  * Explicit Congestion Notification (ECN) bits from different
  * fragments to derive the ECN bits of the reassembled packet.
  */
-class Ipv6Fragment(
+data class Ipv6Fragment(
     override var nextHeader: UByte = IpType.TCP.value,
     override val length: UByte = LENGTH,
     val fragmentOffset: UShort = 0u,

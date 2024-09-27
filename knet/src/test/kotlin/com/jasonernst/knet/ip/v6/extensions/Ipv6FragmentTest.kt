@@ -1,13 +1,37 @@
 package com.jasonernst.knet.ip.v6.extensions
 
+import com.jasonernst.knet.ip.IpType
 import com.jasonernst.knet.ip.v6.Ipv6Header
+import com.jasonernst.knet.ip.v6.extenions.Ipv6Fragment
 import com.jasonernst.knet.transport.tcp.TcpHeader
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.nio.ByteBuffer
 import kotlin.random.Random
 
 class Ipv6FragmentTest {
+    @Test
+    fun toAndFromStream() {
+        val fragmentHeader = Ipv6Fragment()
+        val stream = ByteBuffer.wrap(fragmentHeader.toByteArray())
+        var nextHeader = stream.get().toUByte()
+        stream.get() // skip over length
+        var parsedFragmentHeader = Ipv6Fragment.fromStream(stream, nextHeader)
+        assertEquals(fragmentHeader, parsedFragmentHeader)
+
+        val fragmentWithMore = Ipv6Fragment(moreFlag = true)
+        fragmentWithMore.nextHeader = IpType.UDP.value // make sure the setter is working
+        val stream2 = ByteBuffer.wrap(fragmentWithMore.toByteArray())
+        nextHeader = stream2.get().toUByte()
+        stream2.get() // skip over length
+        parsedFragmentHeader = Ipv6Fragment.fromStream(stream2, nextHeader)
+        assertEquals(fragmentWithMore, parsedFragmentHeader)
+        assertTrue(parsedFragmentHeader.moreFlag)
+        assertEquals(IpType.UDP.value, parsedFragmentHeader.nextHeader)
+    }
+
     @Test
     fun fragmentReassembly() {
         val payload = ByteArray(5000)
