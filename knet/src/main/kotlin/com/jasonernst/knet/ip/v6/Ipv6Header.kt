@@ -255,7 +255,8 @@ data class Ipv6Header(
                 destinationAddress,
                 firstHeaderExtensions,
             )
-        val firstPayloadBytes = closestDivisibleBy(maxSize - IP6_HEADER_SIZE - perFragmentHeaderBytes.toUInt() - extAndUpperBytes.toUInt(), 8u)
+        val firstPayloadBytes =
+            closestDivisibleBy(maxSize - IP6_HEADER_SIZE - perFragmentHeaderBytes.toUInt() - extAndUpperBytes.toUInt(), 8u)
         val firstPair = Triple(firstFragment, nextHeader, payload.sliceArray(0 until firstPayloadBytes.toInt()))
         fragments.add(firstPair)
         var payloadPosition = firstPayloadBytes.toInt()

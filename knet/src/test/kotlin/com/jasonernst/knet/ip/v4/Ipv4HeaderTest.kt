@@ -4,15 +4,14 @@ import com.jasonernst.icmp_common.Checksum
 import com.jasonernst.knet.PacketTooShortException
 import com.jasonernst.knet.ip.IpHeader
 import com.jasonernst.knet.ip.IpHeader.Companion.IP4_VERSION
+import com.jasonernst.knet.ip.IpHeaderTest.Companion.byteBufferOfInts
 import com.jasonernst.knet.ip.IpType
-import com.jasonernst.knet.ip.v4.Ipv4Header.Companion.IP4_MIN_FRAGMENT_PAYLOAD
 import com.jasonernst.knet.ip.v4.Ipv4Header.Companion.IP4_MIN_HEADER_LENGTH
 import com.jasonernst.knet.ip.v4.Ipv4Header.Companion.IP4_WORD_LENGTH
 import com.jasonernst.knet.ip.v4.options.Ipv4OptionNoOperation
 import com.jasonernst.knet.transport.tcp.TcpHeader
 import com.jasonernst.knet.transport.tcp.options.TcpOptionEndOfOptionList
 import com.jasonernst.packetdumper.stringdumper.StringPacketDumper
-import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -26,13 +25,6 @@ import java.nio.ByteBuffer
 class Ipv4HeaderTest {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val stringPacketDumper = StringPacketDumper()
-
-    private fun byteArrayOfInts(vararg ints: Int) =
-        ByteArray(ints.size) { pos ->
-            ints[pos].toByte()
-        }
-
-    private fun byteBufferOfInts(vararg ints: Int) = ByteBuffer.wrap(byteArrayOfInts(*ints))
 
     @Test
     fun ipv4checksumTest2() {
@@ -318,16 +310,5 @@ class Ipv4HeaderTest {
         assertThrows<PacketTooShortException> {
             Ipv4Header.fromStream(stream)
         }
-    }
-
-    @Test fun fragmentationAndReassembly() {
-        val payload = byteArrayOfInts(0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09)
-        val ipv4Header = Ipv4Header(totalLength = (IP4_MIN_HEADER_LENGTH + payload.size.toUShort()).toUShort(), dontFragment = false)
-        val fragments = ipv4Header.fragment(IP4_MIN_HEADER_LENGTH + IP4_MIN_FRAGMENT_PAYLOAD.toUInt(), payload)
-        assertEquals(2, fragments.size)
-
-        val reassembly = Ipv4Header.reassemble(fragments)
-        assertEquals(ipv4Header, reassembly.first)
-        assertArrayEquals(payload, reassembly.second)
     }
 }

@@ -23,9 +23,10 @@ interface IpHeader {
         /**
          * Helper function so that we can ensure the payload length is a multiple of 8
          */
-        fun closestDivisibleBy(initialValue: UInt, divisor: UInt): UInt {
-            return (initialValue + divisor - 1u) / divisor * divisor
-        }
+        fun closestDivisibleBy(
+            initialValue: UInt,
+            divisor: UInt,
+        ): UInt = (initialValue + divisor - 1u) / divisor * divisor
 
         fun fromStream(stream: ByteBuffer): IpHeader {
             val start = stream.position()

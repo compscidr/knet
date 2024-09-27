@@ -15,6 +15,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.experimental.or
 import kotlin.math.ceil
+import kotlin.math.min
 
 /**
  * Internet Protocol Version 4 Header Implementation.
@@ -29,8 +30,8 @@ data class Ipv4Header(
     val dscp: UByte = 0u,
     // 2-bits, explicit congestion notification.
     val ecn: UByte = 0u,
-    // 16-bits, IP packet, including the header
-    private val totalLength: UShort = 0u,
+    // 16-bits, IP packet, including the header: default to a just the header with no payload
+    private val totalLength: UShort = IP4_MIN_HEADER_LENGTH.toUShort(),
     // 16-bits, groups fragments of a single IPv4 datagram.
     val id: UShort = 0u,
     // if the packet is marked as don't fragment and we can't fit it in a single packet, drop it.
@@ -313,9 +314,12 @@ data class Ipv4Header(
      *
      */
     fun fragment(
-        maxSize: UInt,
+        maxSize: UInt, // max size includes the header size
         payload: ByteArray,
     ): List<Pair<Ipv4Header, ByteArray>> {
+        if (maxSize.toInt() % 8 != 0) {
+            throw IllegalArgumentException("Fragment max size must be divisible by 8")
+        }
         if (dontFragment) {
             throw IllegalArgumentException("Cannot fragment packets marked as don't fragment")
         }
@@ -328,11 +332,17 @@ data class Ipv4Header(
                 "The smallest fragment size is ${IP4_MIN_FRAGMENT_PAYLOAD.toInt()} bytes because it must align on a 64-bit boundary",
             )
         }
-        var payloadPerPacket = closestDivisibleBy(maxSize - getHeaderLength(), 8u)
+        var lastFragment = false
         var payloadPosition = 0u
+        var payloadPerPacket = min(payload.size - payloadPosition.toInt(), closestDivisibleBy(maxSize - getHeaderLength(), 8u).toInt())
+        logger.debug("PAYLOAD PER PACKET: $payloadPerPacket HEADERSIZE: ${getHeaderLength()}")
+        if (payloadPosition.toInt() + payloadPerPacket == payload.size) {
+            lastFragment = true
+        }
+
         var isFirstFragment = true
         while (payloadPosition < payload.size.toUInt()) {
-            logger.debug("$payloadPosition:${payloadPosition + payloadPerPacket}")
+            logger.debug("$payloadPosition:${payloadPosition + payloadPerPacket.toUInt()}")
             val offsetIn64BitOctets = payloadPosition / 8u
             var newOptions = options
             var newIhl = ihl
@@ -356,10 +366,10 @@ data class Ipv4Header(
                     ihl = newIhl,
                     dscp = dscp,
                     ecn = ecn,
-                    totalLength = (getHeaderLength() + payloadPerPacket).toUShort(),
+                    totalLength = (getHeaderLength() + payloadPerPacket.toUInt()).toUShort(),
                     id = id,
                     dontFragment = false,
-                    lastFragment = payloadPosition >= getHeaderLength(),
+                    lastFragment = lastFragment,
                     fragmentOffset = offsetIn64BitOctets.toUShort(),
                     ttl = ttl,
                     protocol = protocol,
@@ -370,9 +380,10 @@ data class Ipv4Header(
             logger.debug("payload len:${newHeader.getPayloadLength()}")
             val newPayload = payload.copyOfRange(payloadPosition.toInt(), payloadPosition.toInt() + payloadPerPacket.toInt())
             packetList.add(Pair(newHeader, newPayload))
-            payloadPosition += payloadPerPacket
-            if (payloadPosition + payloadPerPacket > payload.size.toUInt()) {
-                payloadPerPacket = payload.size.toUInt() - payloadPosition
+            payloadPosition += payloadPerPacket.toUInt()
+            if (payloadPosition + payloadPerPacket.toUInt() > payload.size.toUInt()) {
+                payloadPerPacket = (payload.size.toUInt() - payloadPosition).toInt()
+                lastFragment = true
             }
         }
         return packetList
