@@ -32,6 +32,15 @@ class Ipv6DestinationOptionsTest {
         }
     }
 
+    @Test fun optionDataTest() {
+        val optionData =
+            listOf(
+                Ipv6Tlv(),
+            )
+        val destinationOptions = Ipv6DestinationOptions(optionData = optionData)
+        assertEquals(destinationOptions.optionData, optionData)
+    }
+
     @Test fun toFromStream() {
         val destinationOptions = Ipv6DestinationOptions()
         val stream = ByteBuffer.wrap(destinationOptions.toByteArray())
@@ -42,8 +51,8 @@ class Ipv6DestinationOptionsTest {
 
         val options = listOf(Ipv6Tlv())
         val optionsSize = (options.sumOf { options.size })
-        val destinationOptionsWithOptions =
-            Ipv6DestinationOptions(nextHeader = IpType.UDP.value, length = optionsSize.toUInt().toUByte(), optionData = options)
+        val destinationOptionsWithOptions = Ipv6DestinationOptions(length = optionsSize.toUInt().toUByte(), optionData = options)
+        destinationOptionsWithOptions.nextHeader = IpType.UDP.value
         val stream2 = ByteBuffer.wrap(destinationOptionsWithOptions.toByteArray())
         val nextHeader2 = stream2.get().toUByte()
         assertEquals(IpType.UDP.value, nextHeader2)
