@@ -58,7 +58,7 @@ import java.nio.ByteOrder
 open class Ipv6ExtensionHeader(
     val type: IpType,
     open var nextHeader: UByte,
-    open val length: UByte, // measured in 64-bit / 8-octet units
+    open val length: UByte, // measured in 64-bit / 8-octet units, not including the first 8 octets
 ) {
     /**
      * This should be called by the subclass to serialize the extension header to a byte array.
@@ -79,9 +79,18 @@ open class Ipv6ExtensionHeader(
      * This just simply multiplies it by 8, so it would include
      * zero padding.
      */
-    fun getExtensionLengthInBytes(): Int = (length * 8u).toInt()
+    fun getExtensionLengthInBytes(): Int =
+        if (type == IpType.IPV6_FRAG) {
+            Ipv6Fragment.LENGTH.toInt()
+        } else {
+            MIN_LENGTH_BYTES + (length * 8u).toInt()
+        }
 
     companion object {
+        // since the length doesn't include the first 8 octets, we assume that we always have at
+        // least 8 octets
+        const val MIN_LENGTH_BYTES: Int = 8
+
         /**
          * The required option types: https://www.rfc-editor.org/rfc/rfc8200#page-9
          * Hop-by-Hop Options
@@ -143,7 +152,6 @@ open class Ipv6ExtensionHeader(
                         throw IllegalArgumentException("Unsupported IPv6 extension header: $currentHeader")
                     }
                 }
-
                 currentHeader = IpType.fromValue(nextHeader)
             }
             return extensionList

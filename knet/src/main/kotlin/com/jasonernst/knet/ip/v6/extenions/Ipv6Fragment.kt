@@ -265,6 +265,9 @@ import kotlin.experimental.and
  * example, Section 5.3 of [RFC3168] describes how to combine the
  * Explicit Congestion Notification (ECN) bits from different
  * fragments to derive the ECN bits of the reassembled packet.
+ *
+ * NOTE: length is overrided to 0u because that field is reserved and should be all zeros according
+ * to the spec.
  */
 data class Ipv6Fragment(
     override var nextHeader: UByte = IpType.TCP.value,
@@ -272,7 +275,7 @@ data class Ipv6Fragment(
     val fragmentOffset: UShort = 0u,
     val moreFlag: Boolean = false,
     val identification: UInt = 0u,
-) : Ipv6ExtensionHeader(IpType.IPV6_FRAG, nextHeader = nextHeader, length = length) {
+) : Ipv6ExtensionHeader(IpType.IPV6_FRAG, nextHeader = nextHeader, length = 0u) {
     companion object {
         const val LENGTH: UByte = 8u // next header, reserved, fragment offset, and identification
         var globalIdentificationCounter: UInt = 0u

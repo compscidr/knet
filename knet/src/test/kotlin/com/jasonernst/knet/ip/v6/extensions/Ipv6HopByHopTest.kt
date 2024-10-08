@@ -1,5 +1,6 @@
 package com.jasonernst.knet.ip.v6.extensions
 
+import com.jasonernst.knet.ip.IpType
 import com.jasonernst.knet.ip.v6.extenions.Ipv6HopByHopOptions
 import com.jasonernst.knet.ip.v6.extenions.Ipv6Tlv
 import com.jasonernst.packetdumper.stringdumper.StringPacketDumper
@@ -45,6 +46,7 @@ class Ipv6HopByHopTest {
     @Test fun toFromStream() {
         val logger = LoggerFactory.getLogger(javaClass)
         val hopByHopOptions = Ipv6HopByHopOptions()
+        hopByHopOptions.nextHeader = IpType.UDP.value
         val stream = ByteBuffer.wrap(hopByHopOptions.toByteArray())
         val stringPacketDumper = StringPacketDumper(logger)
         stringPacketDumper.dumpBuffer(stream)

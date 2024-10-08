@@ -114,8 +114,8 @@ import java.nio.ByteOrder
  */
 data class Ipv6Tlv(
     val optionType: Ipv6DestinationHopByHopType = Ipv6DestinationHopByHopType.PadN,
-    val optionDataLength: UByte = 4u,
-    val optionData: ByteArray = ByteArray(4),
+    val optionDataLength: UByte = 6u,
+    val optionData: ByteArray = ByteArray(6),
 ) {
     init {
         if (optionDataLength.toInt() != optionData.size) {

@@ -4,7 +4,6 @@ import com.jasonernst.knet.ip.IpType
 import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import kotlin.math.ceil
 
 /**
  * https://www.rfc-editor.org/rfc/rfc8200#page-13
@@ -31,36 +30,26 @@ import kotlin.math.ceil
  */
 data class Ipv6HopByHopOptions(
     override var nextHeader: UByte = IpType.TCP.value,
-    override val length: UByte = ceil((MIN_LENGTH.toDouble() + Ipv6Tlv().size()) / 8.0).toUInt().toUByte(),
+    override val length: UByte = 1u,
     val optionData: List<Ipv6Tlv> = listOf(Ipv6Tlv()),
 ) : Ipv6ExtensionHeader(IpType.HOPOPT, nextHeader, length) {
     init {
-        // dummy check to make sure the length is a multiple of 8
-        val optionLength = optionData.sumOf { it.size() }
-        val totalLength = optionLength + MIN_LENGTH.toInt()
-        if (totalLength % 8 != 0) {
-            throw IllegalArgumentException("Option data length + 2 must be a multiple of 8, but have $totalLength")
-        }
-
         // dummy check to ensure length matches the option data
-        val octet8Lengths = ceil(totalLength.toDouble() / 8.0)
+        val octet8Lengths = optionData.sumOf { it.size() } / 8.0
         if (octet8Lengths != length.toDouble()) {
-            throw IllegalArgumentException(
-                "(Option data length + 2) / 8 must match the length field, have $octet8Lengths, expecting $length",
-            )
+            throw IllegalArgumentException("(Option data length / 8 must match the length field, have $octet8Lengths, expecting $length")
         }
     }
 
     companion object {
         private val logger = LoggerFactory.getLogger(Ipv6HopByHopOptions::class.java)
-        const val MIN_LENGTH: UByte = 2u // next header and length with no actual option data
 
         /**
          * Assumes that the stream has already had the nextHeader and length parsed from it
          */
         fun fromStream(
             stream: ByteBuffer,
-            nextheader: UByte,
+            nextHeader: UByte,
             length: UByte,
         ): Ipv6HopByHopOptions {
             val optionData = mutableListOf<Ipv6Tlv>()
@@ -70,7 +59,7 @@ data class Ipv6HopByHopOptions(
                 logger.debug("Parsed TLV: {}", nextTlv)
                 optionData.add(nextTlv)
             }
-            return Ipv6HopByHopOptions(nextheader, length, optionData)
+            return Ipv6HopByHopOptions(nextHeader, length, optionData)
         }
     }
 
