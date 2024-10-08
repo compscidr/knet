@@ -1,4 +1,4 @@
-package com.jasonernst.knet.ip.v6.extenions.type
+package com.jasonernst.knet.ip.v6.extenions
 
 /**
  * https://www.iana.org/assignments/ipv6-parameters/ipv6-parameters.xhtml#ipv6-parameters-2

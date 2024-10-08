@@ -1,8 +1,8 @@
 package com.jasonernst.knet.ip.v6.extensions
 
 import com.jasonernst.knet.PacketTooShortException
+import com.jasonernst.knet.ip.v6.extenions.Ipv6DestinationHopByHopType
 import com.jasonernst.knet.ip.v6.extenions.Ipv6Tlv
-import com.jasonernst.knet.ip.v6.extenions.type.Ipv6DestinationHopByHopType
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals

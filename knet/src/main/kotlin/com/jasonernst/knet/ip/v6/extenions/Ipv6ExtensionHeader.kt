@@ -2,6 +2,7 @@ package com.jasonernst.knet.ip.v6.extenions
 
 import com.jasonernst.knet.PacketTooShortException
 import com.jasonernst.knet.ip.IpType
+import com.jasonernst.knet.ip.v6.extenions.routing.Ipv6Routing
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -138,7 +139,7 @@ open class Ipv6ExtensionHeader(
                         extensionList.add(Ipv6DestinationOptions.fromStream(stream, nextHeader, length))
                     }
                     IpType.IPV6_ROUTE -> {
-                        extensionList.add(Ipv6Routing.fromStream(stream, nextHeader, length))
+                        extensionList.add(Ipv6Routing.Companion.fromStream(stream, nextHeader, length))
                     }
                     IpType.AH -> {
                         extensionList.add(Ipv6Authentication.fromStream(stream, nextHeader, length))
