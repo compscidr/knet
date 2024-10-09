@@ -6,6 +6,7 @@ import com.jasonernst.knet.network.ip.v4.Ipv4Header
 import com.jasonernst.knet.network.ip.v6.Ipv6Header
 import com.jasonernst.knet.transport.tcp.TcpHeader
 import com.jasonernst.knet.transport.udp.UdpHeader
+import com.jasonernst.packetdumper.filedumper.TextFilePacketDumper
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -13,12 +14,16 @@ import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.slf4j.LoggerFactory
+import java.io.FileNotFoundException
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import kotlin.random.Random
 
 class PacketTests {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     @Test
     fun packetTooShort() {
         val payload = "test".toByteArray()
@@ -87,5 +92,17 @@ class PacketTests {
         assertEquals(packet.ipHeader, packet5.ipHeader)
         assertEquals(packet.nextHeaders, packet5.nextHeaders)
         assertArrayEquals(packet.payload, packet5.payload)
+    }
+
+    @Test fun multiplePacketFromFileTest() {
+        val filename = "/test_packets/ipv6_multiple_packets.dump"
+        val resource =
+            javaClass.getResource(filename)
+                ?: throw FileNotFoundException("Could not find test dump: $filename")
+        val readBuffer = TextFilePacketDumper.parseFile(resource.file, true)
+        logger.debug("Read buffer length: {}", readBuffer.limit())
+
+        Packet.fromStream(readBuffer)
+        Packet.fromStream(readBuffer)
     }
 }

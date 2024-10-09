@@ -24,9 +24,13 @@ data class Packet(
         fun fromStream(stream: ByteBuffer): Packet {
             val ipHeader = IpHeader.fromStream(stream)
             logger.debug("IP header: {}", ipHeader)
-            val nextHeader = NextHeader.fromStream(stream, ipHeader.getNextHeaderProtocol())
+            val nextHeaderLimit = ipHeader.getTotalLength() - ipHeader.getHeaderLength()
+            val nextHeader = NextHeader.fromStream(stream, ipHeader.getNextHeaderProtocol(), nextHeaderLimit.toInt())
             logger.debug("Next header: {}", nextHeader)
             val expectedRemaining = (ipHeader.getTotalLength() - ipHeader.getHeaderLength() - nextHeader.getHeaderLength()).toInt()
+            logger.debug(
+                "IP Header total length: ${ipHeader.getTotalLength()}, IP Header length: ${ipHeader.getHeaderLength()}, Next header length: ${nextHeader.getHeaderLength()}, Expected remaining: $expectedRemaining",
+            )
             if (stream.remaining() < expectedRemaining) {
                 throw PacketTooShortException(
                     "Packet too short to obtain entire payload, have ${stream.remaining()}, expecting $expectedRemaining",

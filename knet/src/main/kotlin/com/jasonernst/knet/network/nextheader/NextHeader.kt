@@ -19,6 +19,7 @@ interface NextHeader {
         fun fromStream(
             stream: ByteBuffer,
             protocol: UByte,
+            limit: Int = stream.remaining(),
         ): NextHeader =
             when (protocol) {
                 IpType.TCP.value -> {
@@ -30,12 +31,16 @@ interface NextHeader {
                 }
 
                 IpType.ICMP.value -> {
-                    ICMPNextHeaderWrapper(ICMPHeader.fromStream(buffer = stream), protocol = IpType.ICMP.value, typeString = "ICMP")
+                    ICMPNextHeaderWrapper(
+                        ICMPHeader.fromStream(buffer = stream, limit = limit),
+                        protocol = IpType.ICMP.value,
+                        typeString = "ICMP",
+                    )
                 }
 
                 IpType.IPV6_ICMP.value -> {
                     ICMPNextHeaderWrapper(
-                        ICMPHeader.fromStream(buffer = stream, isIcmpV4 = false),
+                        ICMPHeader.fromStream(buffer = stream, limit = limit, isIcmpV4 = false),
                         protocol = IpType.IPV6_ICMP.value,
                         typeString = "ICMPv6",
                     )
