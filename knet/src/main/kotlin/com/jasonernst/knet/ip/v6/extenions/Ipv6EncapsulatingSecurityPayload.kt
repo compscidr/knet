@@ -8,23 +8,22 @@ import java.nio.ByteOrder
  * https://datatracker.ietf.org/doc/html/rfc4303
  */
 class Ipv6EncapsulatingSecurityPayload(
+    val securityParametersIndex: UInt,
+    val sequenceNumber: UInt,
     override var nextHeader: UByte = IpType.TCP.value,
-    override val length: UByte = MIN_LENGTH,
+    override val length: UByte = 0u,
 ) : Ipv6ExtensionHeader(IpType.ESP, nextHeader = nextHeader, length = length) {
     companion object {
-        const val MIN_LENGTH: UByte = 2u // next header and length with no actual option data
-
         fun fromStream(
             stream: ByteBuffer,
-            nextheader: UByte,
+            nextHeader: UByte,
             length: UByte,
-        ): Ipv6EncapsulatingSecurityPayload = Ipv6EncapsulatingSecurityPayload(nextheader, length)
+        ): Ipv6EncapsulatingSecurityPayload {
+            TODO()
+        }
     }
 
     override fun toByteArray(order: ByteOrder): ByteArray {
-        val buffer = ByteBuffer.allocate(MIN_LENGTH.toInt())
-        buffer.order(order)
-        buffer.put(super.toByteArray(order))
-        return buffer.array()
+        TODO()
     }
 }

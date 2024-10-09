@@ -11,13 +11,12 @@ class Ipv6Authentication(
     override val length: UByte = 0u,
 ) : Ipv6ExtensionHeader(IpType.AH, nextHeader = nextHeader, length = length) {
     companion object {
-        // nextheader, length, reserved, SPI, sequence number, ICV
-        const val MIN_LENGTH = 20
-
         fun fromStream(
             stream: ByteBuffer,
-            nextheader: UByte,
+            nextHeader: UByte,
             length: UByte,
-        ): Ipv6Authentication = Ipv6Authentication(nextheader, length)
+        ): Ipv6Authentication {
+            TODO()
+        }
     }
 }
