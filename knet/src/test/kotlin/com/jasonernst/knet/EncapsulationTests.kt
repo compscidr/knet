@@ -1,8 +1,8 @@
 package com.jasonernst.knet
 
-import com.jasonernst.knet.ip.IpHeader
-import com.jasonernst.knet.ip.IpType
-import com.jasonernst.knet.nextheader.NextHeader
+import com.jasonernst.knet.network.ip.IpHeader
+import com.jasonernst.knet.network.ip.IpType
+import com.jasonernst.knet.network.nextheader.NextHeader
 import com.jasonernst.knet.transport.tcp.TcpHeader
 import com.jasonernst.knet.transport.udp.UdpHeader
 import com.jasonernst.packetdumper.stringdumper.StringPacketDumper

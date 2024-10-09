@@ -1,9 +1,9 @@
 package com.jasonernst.knet
 
-import com.jasonernst.knet.ip.IpHeader
-import com.jasonernst.knet.ip.IpType
-import com.jasonernst.knet.ip.v4.Ipv4Header
-import com.jasonernst.knet.ip.v6.Ipv6Header
+import com.jasonernst.knet.network.ip.IpHeader
+import com.jasonernst.knet.network.ip.IpType
+import com.jasonernst.knet.network.ip.v4.Ipv4Header
+import com.jasonernst.knet.network.ip.v6.Ipv6Header
 import com.jasonernst.knet.transport.tcp.TcpHeader
 import com.jasonernst.knet.transport.udp.UdpHeader
 import org.junit.jupiter.api.Assertions.assertArrayEquals

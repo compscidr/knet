@@ -1,7 +1,7 @@
 package com.jasonernst.knet
 
-import com.jasonernst.knet.ip.IpHeader
-import com.jasonernst.knet.nextheader.NextHeader
+import com.jasonernst.knet.network.ip.IpHeader
+import com.jasonernst.knet.network.nextheader.NextHeader
 import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 import java.nio.ByteOrder

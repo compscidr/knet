@@ -1,7 +1,7 @@
 package com.jasonernst.knet.transport.udp
 
 import com.jasonernst.knet.PacketTooShortException
-import com.jasonernst.knet.ip.IpType
+import com.jasonernst.knet.network.ip.IpType
 import com.jasonernst.knet.transport.TransportHeader
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
