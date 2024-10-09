@@ -8,6 +8,12 @@ import java.net.Inet6Address
 import java.nio.ByteBuffer
 
 class IpHeaderTest {
+    companion object {
+        fun byteArrayOfInts(vararg ints: Int) = ByteArray(ints.size) { pos -> ints[pos].toByte() }
+
+        fun byteBufferOfInts(vararg ints: Int) = ByteBuffer.wrap(byteArrayOfInts(*ints))
+    }
+
     @Test fun tooShortBuffer() {
         val stream = ByteBuffer.allocate(0)
         assertThrows<PacketTooShortException> {

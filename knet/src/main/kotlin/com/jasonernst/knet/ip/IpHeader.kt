@@ -1,7 +1,9 @@
 package com.jasonernst.knet.ip
 
 import com.jasonernst.knet.PacketTooShortException
-import com.jasonernst.knet.ip.Ipv4Header.Companion.IP4_MIN_HEADER_LENGTH
+import com.jasonernst.knet.ip.v4.Ipv4Header
+import com.jasonernst.knet.ip.v4.Ipv4Header.Companion.IP4_MIN_HEADER_LENGTH
+import com.jasonernst.knet.ip.v6.Ipv6Header
 import org.slf4j.LoggerFactory
 import java.net.Inet4Address
 import java.net.Inet6Address
@@ -17,6 +19,14 @@ interface IpHeader {
         private val logger = LoggerFactory.getLogger(IpHeader::class.java)
         const val IP4_VERSION: UByte = 4u
         const val IP6_VERSION: UByte = 6u
+
+        /**
+         * Helper function so that we can ensure the payload length is a multiple of 8
+         */
+        fun closestDivisibleBy(
+            initialValue: UInt,
+            divisor: UInt,
+        ): UInt = (initialValue + divisor - 1u) / divisor * divisor
 
         fun fromStream(stream: ByteBuffer): IpHeader {
             val start = stream.position()

@@ -3,7 +3,7 @@ package com.jasonernst.knet.tcp.options
 import com.jasonernst.knet.PacketTooShortException
 import com.jasonernst.knet.ip.IpHeader
 import com.jasonernst.knet.ip.IpType
-import com.jasonernst.knet.ip.options.Ipv4OptionNoOperation
+import com.jasonernst.knet.ip.v4.options.Ipv4OptionNoOperation
 import com.jasonernst.knet.nextheader.NextHeader
 import com.jasonernst.knet.transport.tcp.TcpHeader
 import com.jasonernst.knet.transport.tcp.options.TcpOption
@@ -338,6 +338,9 @@ class TcpOptionTests {
         val option1 = TcpOptionUnsupported(88u, ByteArray(0))
         val option2 = TcpOptionUnsupported(88u, ByteArray(0))
         assertEquals(option1, option2)
+        assertEquals(option1, option1)
+        assertNotEquals(option1, Any())
+        assertNotEquals(option1, null)
 
         val option3 = TcpOptionUnsupported(88u, ByteArray(1))
         assertNotEquals(option1, option3)
