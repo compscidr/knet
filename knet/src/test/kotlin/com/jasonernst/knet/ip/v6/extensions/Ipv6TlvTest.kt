@@ -50,4 +50,10 @@ class Ipv6TlvTest {
             Ipv6Tlv.fromStream(stream)
         }
     }
+
+    @Test fun hashTest() {
+        val tlv1 = Ipv6Tlv(Ipv6DestinationHopByHopType.Pad1, 1u, byteArrayOf(0))
+        val hashMap = hashMapOf(tlv1 to 1)
+        assertEquals(1, hashMap[tlv1])
+    }
 }
