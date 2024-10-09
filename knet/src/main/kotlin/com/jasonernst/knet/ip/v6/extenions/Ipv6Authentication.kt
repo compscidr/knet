@@ -8,7 +8,7 @@ import java.nio.ByteBuffer
  */
 class Ipv6Authentication(
     override var nextHeader: UByte,
-    override val length: UByte,
+    override val length: UByte = 0u,
 ) : Ipv6ExtensionHeader(IpType.AH, nextHeader = nextHeader, length = length) {
     companion object {
         // nextheader, length, reserved, SPI, sequence number, ICV

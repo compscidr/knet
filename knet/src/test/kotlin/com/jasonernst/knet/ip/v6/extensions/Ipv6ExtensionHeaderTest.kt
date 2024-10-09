@@ -34,6 +34,7 @@ class Ipv6ExtensionHeaderTest {
                 Ipv6Fragment(nextHeader = IpType.IPV6_OPTS.value),
                 Ipv6DestinationOptions(nextHeader = IpType.IPV6_ROUTE.value),
                 Ipv6Type2Routing(nextHeader = IpType.TCP.value, homeAddress),
+                // Ipv6Authentication(nextHeader = IpType.TCP.value),
             )
         val payloadLength = ipv6ExtensionHeaders.sumOf { it.length.toInt() }
         val ipv6Header =

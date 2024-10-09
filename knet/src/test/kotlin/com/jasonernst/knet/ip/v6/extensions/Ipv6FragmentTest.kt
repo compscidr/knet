@@ -2,6 +2,7 @@ package com.jasonernst.knet.ip.v6.extensions
 
 import com.jasonernst.knet.ip.IpType
 import com.jasonernst.knet.ip.v6.Ipv6Header
+import com.jasonernst.knet.ip.v6.extenions.Ipv6Authentication
 import com.jasonernst.knet.ip.v6.extenions.Ipv6Fragment
 import com.jasonernst.knet.ip.v6.extenions.Ipv6HopByHopOptions
 import com.jasonernst.knet.transport.tcp.TcpHeader
@@ -113,7 +114,7 @@ class Ipv6FragmentTest {
         assertThrows<IllegalArgumentException> { Ipv6Header.reassemble(fragments) }
     }
 
-    @Test fun reassmbleWithMismatchedId() {
+    @Test fun reassembleWithMismatchedId() {
         val fragment1 = Ipv6Fragment(identification = 1u)
         val fragment2 = Ipv6Fragment(identification = 2u)
         val fragments =
@@ -122,5 +123,15 @@ class Ipv6FragmentTest {
                 Triple(Ipv6Header(extensionHeaders = listOf(fragment2)), null, ByteArray(0)),
             )
         assertThrows<IllegalArgumentException> { Ipv6Header.reassemble(fragments) }
+    }
+
+    @Test fun fragmentWithNonRouterHeader() {
+        val extensionHeaders = listOf(Ipv6HopByHopOptions(), Ipv6Authentication(IpType.TCP.value))
+        val extensionSize = extensionHeaders.sumOf { it.getExtensionLengthInBytes() }
+        val payload = ByteArray(5000)
+        Random.Default.nextBytes(payload)
+        val totalSize = TcpHeader().getHeaderLength() + extensionSize.toUInt() + payload.size.toUInt()
+        val ipv6Header = Ipv6Header(extensionHeaders = extensionHeaders, payloadLength = totalSize.toUShort())
+        ipv6Header.fragment(1000u, TcpHeader(), payload)
     }
 }
