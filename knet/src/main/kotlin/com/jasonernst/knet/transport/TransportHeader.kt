@@ -1,6 +1,6 @@
 package com.jasonernst.knet.transport
 
-import com.jasonernst.knet.nextheader.NextHeader
+import com.jasonernst.knet.network.nextheader.NextHeader
 import java.net.InetAddress
 
 /**

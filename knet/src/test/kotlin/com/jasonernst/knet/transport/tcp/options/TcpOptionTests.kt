@@ -1,10 +1,10 @@
 package com.jasonernst.knet.tcp.options
 
 import com.jasonernst.knet.PacketTooShortException
-import com.jasonernst.knet.ip.IpHeader
-import com.jasonernst.knet.ip.IpType
-import com.jasonernst.knet.ip.v4.options.Ipv4OptionNoOperation
-import com.jasonernst.knet.nextheader.NextHeader
+import com.jasonernst.knet.network.ip.IpHeader
+import com.jasonernst.knet.network.ip.IpType
+import com.jasonernst.knet.network.ip.v4.options.Ipv4OptionNoOperation
+import com.jasonernst.knet.network.nextheader.NextHeader
 import com.jasonernst.knet.transport.tcp.TcpHeader
 import com.jasonernst.knet.transport.tcp.options.TcpOption
 import com.jasonernst.knet.transport.tcp.options.TcpOption.Companion.parseOptions
