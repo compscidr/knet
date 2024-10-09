@@ -121,18 +121,27 @@ open class Ipv6ExtensionHeader(
         ): List<Ipv6ExtensionHeader> {
             var currentHeader = firstHeader
             val extensionList = mutableListOf<Ipv6ExtensionHeader>()
-            while (currentHeader in requiredExtensionHeaders) {
-                if (stream.remaining() < 2) {
-                    throw PacketTooShortException("Not enough bytes remaining to determine the length")
+
+            // if its not in the required extension headers, we will break out of the loop
+            // and return the list we've made so far. This should happen when we hit the TCP, UDP,
+            // etc header
+            while (currentHeader in requiredExtensionHeaders && stream.hasRemaining()) {
+                if (stream.remaining() < MIN_LENGTH_BYTES) {
+                    throw PacketTooShortException(
+                        "Not enough bytes to read the extension header, " +
+                            "require: $MIN_LENGTH_BYTES, remaining: ${stream.remaining()}",
+                    )
                 }
                 val nextHeader = stream.get().toUByte()
                 val length = stream.get().toUByte()
 
                 when (currentHeader) {
                     IpType.HOPOPT -> {
+                        println("GOT HOP BY HOP with next header: $nextHeader and length $length")
                         extensionList.add(Ipv6HopByHopOptions.fromStream(stream, nextHeader, length))
                     }
                     IpType.IPV6_FRAG -> {
+                        println("GOT FRAGMENT with next header: $nextHeader and length $length")
                         extensionList.add(Ipv6Fragment.fromStream(stream, nextHeader))
                     }
                     IpType.IPV6_OPTS -> {
@@ -148,8 +157,7 @@ open class Ipv6ExtensionHeader(
                         extensionList.add(Ipv6EncapsulatingSecurityPayload.fromStream(stream, nextHeader, length))
                     }
                     else -> {
-                        // todo: pass over the unsupported extension header leaving the stream position just
-                        //  beyond it, log a warning, and return an "Unsupported Ipv6 extension header" object
+                        // can't really get here, but kotlin requires an else case
                         throw IllegalArgumentException("Unsupported IPv6 extension header: $currentHeader")
                     }
                 }

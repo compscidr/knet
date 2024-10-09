@@ -8,7 +8,6 @@ import com.jasonernst.knet.ip.IpType
 import com.jasonernst.knet.ip.v6.extenions.Ipv6ExtensionHeader
 import com.jasonernst.knet.ip.v6.extenions.Ipv6Fragment
 import com.jasonernst.knet.nextheader.NextHeader
-import org.slf4j.LoggerFactory
 import java.net.Inet6Address
 import java.net.InetAddress
 import java.nio.ByteBuffer
@@ -36,8 +35,14 @@ data class Ipv6Header(
     override val destinationAddress: InetAddress = Inet6Address.getByName("::1"),
     val extensionHeaders: List<Ipv6ExtensionHeader> = emptyList(),
 ) : IpHeader {
+    init {
+        if (flowLabel > 0xFFFFFu) {
+            // can't be more than 20 bits
+            throw IllegalArgumentException("Flow label must be less than 0xFFFFF")
+        }
+    }
+
     companion object {
-        private val logger = LoggerFactory.getLogger(Ipv6Header::class.java)
         private const val IP6_HEADER_SIZE: UShort = 40u // ipv6 header is not variable like ipv4
 
         // The Per-Fragment headers must consist of the IPv6 header plus any
@@ -67,7 +72,7 @@ data class Ipv6Header(
             }
 
             // ensure we have enough capacity in the stream to parse out a full header
-            val headerAvailable = stream.limit() - stream.position()
+            val headerAvailable = stream.limit() - start
             if (headerAvailable < IP6_HEADER_SIZE.toInt()) {
                 throw PacketTooShortException(
                     "Minimum Ipv6 header length is $IP6_HEADER_SIZE bytes. There are only $headerAvailable bytes available",
@@ -333,22 +338,25 @@ data class Ipv6Header(
         return buffer.array()
     }
 
-    override fun getHeaderLength(): UShort =
-        (
-            IP6_HEADER_SIZE +
-                (
-                    extensionHeaders.sumOf {
-                        it.getExtensionLengthInBytes()
-                    }
-                ).toUShort()
-        ).toUShort()
+    override fun getHeaderLength(): UShort {
+        val extensionHeadersLength =
+            extensionHeaders.sumOf {
+                it.getExtensionLengthInBytes()
+            }
+        return (IP6_HEADER_SIZE.toInt() + extensionHeadersLength).toUShort()
+    }
 
     override fun getTotalLength(): UShort = (getHeaderLength() + payloadLength).toUShort()
 
     override fun getPayloadLength(): UShort = payloadLength
 
-    override fun toString(): String =
-        "IPv6Header(version=$version, trafficClass=$trafficClass, flowLabel=$flowLabel, " +
-            "payloadLength=$payloadLength, protocol=$protocol, hopLimit=$hopLimit, " +
-            "sourceAddress=$sourceAddress, destinationAddress=$destinationAddress)"
+    override fun toString(): String {
+        val extensionHeaderString = extensionHeaders.joinToString(", ", "[", "]")
+        val string =
+            "IPv6Header(version=$version, trafficClass=$trafficClass, flowLabel=$flowLabel, " +
+                "payloadLength=$payloadLength, protocol=$protocol, hopLimit=$hopLimit, " +
+                "sourceAddress=$sourceAddress, destinationAddress=$destinationAddress, " +
+                "extensionHeaders=$extensionHeaderString)"
+        return string
+    }
 }

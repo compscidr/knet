@@ -82,6 +82,12 @@ data class Ipv6Type2Routing(
         routingType = Ipv6RoutingType.Type2RoutingHeader,
         segmentsLeft = 1u,
     ) {
+    init {
+        if (homeAddress.size != 16) {
+            throw IllegalArgumentException("Home address must be 16 bytes, but got ${homeAddress.size}")
+        }
+    }
+
     companion object {
         fun fromStream(
             nextHeader: UByte,
@@ -90,7 +96,7 @@ data class Ipv6Type2Routing(
             segmentsLeft: UByte,
             stream: ByteBuffer,
         ): Ipv6Type2Routing {
-            val expectedRemaining = ((length * 8u) - 8u).toInt()
+            val expectedRemaining = 4 + (length * 8u).toInt()
             if (stream.remaining() < expectedRemaining) {
                 throw PacketTooShortException("Expected $expectedRemaining bytes, but only have ${stream.remaining()} bytes")
             }
@@ -100,9 +106,7 @@ data class Ipv6Type2Routing(
             if (segmentsLeft.toUInt() != 1u) {
                 throw IllegalArgumentException("Expected segments left to be 1, but got $segmentsLeft")
             }
-            if (expectedRemaining != 16) {
-                throw IllegalArgumentException("Expected 16 bytes of data, but got $expectedRemaining")
-            }
+            stream.position(stream.position() + 4) // skip reserved field
             val homeAddress = ByteArray(16)
             stream.get(homeAddress)
             return Ipv6Type2Routing(nextHeader, homeAddress)
@@ -115,5 +119,21 @@ data class Ipv6Type2Routing(
         buffer.put(super.toByteArray(order))
         buffer.put(homeAddress)
         return buffer.array()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Ipv6Type2Routing) return false
+
+        if (nextHeader != other.nextHeader) return false
+        if (!homeAddress.contentEquals(other.homeAddress)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = nextHeader.hashCode()
+        result = 31 * result + homeAddress.contentHashCode()
+        return result
     }
 }

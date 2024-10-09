@@ -106,7 +106,7 @@ open class Ipv6Routing(
                     //   IPv6 implementations are no longer required to implement RH0 in any
                     //   way.
                     if (segmentsLeft.toInt() == 0) {
-                        val remaining = (length.toInt() * 8) - MIN_LENGTH_BYTES
+                        val remaining = (length.toInt() * 8)
                         stream.position(stream.position() + remaining)
                         throw NonFatalRoutingException("SourceRouteDeprecated is deprecated")
                     } else {

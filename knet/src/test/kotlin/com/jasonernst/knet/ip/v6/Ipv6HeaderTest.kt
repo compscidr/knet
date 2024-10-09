@@ -45,4 +45,17 @@ class Ipv6HeaderTest {
         val parsedHeader = IpHeader.fromStream(stream)
         assertEquals(ipv6Header, parsedHeader)
     }
+
+    @Test fun toFromStream() {
+        val ipv6Header = Ipv6Header()
+        val stream = ByteBuffer.wrap(ipv6Header.toByteArray())
+        val parsed = Ipv6Header.fromStream(stream)
+        assertEquals(ipv6Header, parsed)
+    }
+
+    @Test fun flowLabelTooBig() {
+        assertThrows<IllegalArgumentException> {
+            Ipv6Header(flowLabel = 0x123456u)
+        }
+    }
 }

@@ -271,7 +271,6 @@ import kotlin.experimental.and
  */
 data class Ipv6Fragment(
     override var nextHeader: UByte = IpType.TCP.value,
-    override val length: UByte = LENGTH,
     val fragmentOffset: UShort = 0u,
     val moreFlag: Boolean = false,
     val identification: UInt = 0u,
@@ -288,7 +287,7 @@ data class Ipv6Fragment(
             val fragmentOffset = ((fragmentOffsetRMByte and 0b111111111111100).toUInt() shr 3).toUShort()
             val moreFlag = (fragmentOffsetRMByte and 0b1).toInt() == 1
             val identification = stream.getInt().toUInt()
-            return Ipv6Fragment(nextheader, LENGTH, fragmentOffset, moreFlag, identification)
+            return Ipv6Fragment(nextheader, fragmentOffset, moreFlag, identification)
         }
     }
 

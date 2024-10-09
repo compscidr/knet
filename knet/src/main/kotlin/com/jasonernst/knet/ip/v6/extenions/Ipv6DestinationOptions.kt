@@ -1,6 +1,7 @@
 package com.jasonernst.knet.ip.v6.extenions
 
 import com.jasonernst.knet.ip.IpType
+import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -63,18 +64,26 @@ import java.nio.ByteOrder
  */
 data class Ipv6DestinationOptions(
     override var nextHeader: UByte = IpType.TCP.value,
-    override val length: UByte = 1u,
+    override val length: UByte = 0u,
     val optionData: List<Ipv6Tlv> = listOf(Ipv6Tlv()),
 ) : Ipv6ExtensionHeader(IpType.IPV6_OPTS, nextHeader, length) {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     init {
         // dummy check to ensure length matches the option data
-        val octet8Lengths = optionData.sumOf { it.size() } / 8.0
+        val optionDataLength = optionData.sumOf { it.size() }
+        logger.debug("Option data length: {}", optionDataLength)
+        val fullLength = 2 + optionDataLength
+        logger.debug("Full length: {}", fullLength)
+        val octet8Lengths = (fullLength / 8.0) - 1
         if (octet8Lengths != length.toDouble()) {
             throw IllegalArgumentException("(Option data length / 8 must match the length field, have $octet8Lengths, expecting $length")
         }
     }
 
     companion object {
+        private val logger = LoggerFactory.getLogger(Ipv6DestinationOptions::class.java)
+
         /**
          * Assumes that the stream has already had the nextHeader and length parsed from it
          */
@@ -83,10 +92,13 @@ data class Ipv6DestinationOptions(
             nextHeader: UByte,
             length: UByte,
         ): Ipv6DestinationOptions {
+            val limit = (((length + 1u) * 8u) - 2u).toInt()
             val optionData = mutableListOf<Ipv6Tlv>()
             val start = stream.position()
-            while (stream.position() - start < length.toInt()) {
+            logger.debug("LENGTH: {} POSITION: {} LIMIT: {}", length, start, limit)
+            while (stream.position() - start < limit) {
                 val nextTlv = Ipv6Tlv.fromStream(stream)
+                logger.debug("Parsed TLV: {}", nextTlv)
                 optionData.add(nextTlv)
             }
             return Ipv6DestinationOptions(nextHeader, length, optionData)

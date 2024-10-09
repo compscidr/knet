@@ -51,7 +51,9 @@ class Ipv6DestinationOptionsTest {
 
         val options = listOf(Ipv6Tlv())
         val optionsSize = (options.sumOf { options.size })
-        val destinationOptionsWithOptions = Ipv6DestinationOptions(length = optionsSize.toUInt().toUByte(), optionData = options)
+        val totalSize = 2 + optionsSize
+        val octect8Lengths = ((totalSize / 8.0) - 1).toUInt().toUByte()
+        val destinationOptionsWithOptions = Ipv6DestinationOptions(length = octect8Lengths, optionData = options)
         destinationOptionsWithOptions.nextHeader = IpType.UDP.value
         val stream2 = ByteBuffer.wrap(destinationOptionsWithOptions.toByteArray())
         val nextHeader2 = stream2.get().toUByte()
