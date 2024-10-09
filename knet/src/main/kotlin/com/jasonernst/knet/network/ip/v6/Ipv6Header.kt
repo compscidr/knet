@@ -8,6 +8,7 @@ import com.jasonernst.knet.network.ip.IpType
 import com.jasonernst.knet.network.ip.v6.extenions.Ipv6ExtensionHeader
 import com.jasonernst.knet.network.ip.v6.extenions.Ipv6Fragment
 import com.jasonernst.knet.network.nextheader.NextHeader
+import org.slf4j.LoggerFactory
 import java.net.Inet6Address
 import java.net.InetAddress
 import java.nio.ByteBuffer
@@ -43,6 +44,7 @@ data class Ipv6Header(
     }
 
     companion object {
+        private val logger = LoggerFactory.getLogger(javaClass)
         private const val IP6_HEADER_SIZE: UShort = 40u // ipv6 header is not variable like ipv4
 
         // The Per-Fragment headers must consist of the IPv6 header plus any
@@ -99,6 +101,7 @@ data class Ipv6Header(
                     stream,
                     IpType.fromValue(protocol),
                 )
+            logger.debug("Done parsing extension headers")
 
             return Ipv6Header(
                 ipVersion,
@@ -347,7 +350,8 @@ data class Ipv6Header(
         return (IP6_HEADER_SIZE.toInt() + extensionHeadersLength).toUShort()
     }
 
-    override fun getTotalLength(): UShort = (getHeaderLength() + payloadLength).toUShort()
+    // note: the payload length contains the extension headers length in it
+    override fun getTotalLength(): UShort = (IP6_HEADER_SIZE + payloadLength).toUShort()
 
     override fun getPayloadLength(): UShort = payloadLength
 
@@ -360,4 +364,6 @@ data class Ipv6Header(
                 "extensionHeaders=$extensionHeaderString)"
         return string
     }
+
+    override fun getNextHeaderProtocol(): UByte = extensionHeaders.lastOrNull()?.nextHeader ?: protocol
 }

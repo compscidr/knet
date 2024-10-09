@@ -137,11 +137,9 @@ open class Ipv6ExtensionHeader(
 
                 when (currentHeader) {
                     IpType.HOPOPT -> {
-                        println("GOT HOP BY HOP with next header: $nextHeader and length $length")
                         extensionList.add(Ipv6HopByHopOptions.fromStream(stream, nextHeader, length))
                     }
                     IpType.IPV6_FRAG -> {
-                        println("GOT FRAGMENT with next header: $nextHeader and length $length")
                         extensionList.add(Ipv6Fragment.fromStream(stream, nextHeader))
                     }
                     IpType.IPV6_OPTS -> {

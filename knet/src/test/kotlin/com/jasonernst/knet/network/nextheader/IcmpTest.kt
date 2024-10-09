@@ -10,13 +10,16 @@ import java.nio.ByteBuffer
 class IcmpTest {
     @Test
     fun icmpv4() {
-        val icmp = ICMPNextHeaderWrapper(
-            ICMPv4EchoPacket(
-                id = 1u,
-                sequence = 2u,
-                data = "hello".toByteArray()
-            ), IpType.ICMP.value, "ICMP"
-        )
+        val icmp =
+            ICMPNextHeaderWrapper(
+                ICMPv4EchoPacket(
+                    id = 1u,
+                    sequence = 2u,
+                    data = "hello".toByteArray(),
+                ),
+                IpType.ICMP.value,
+                "ICMP",
+            )
         val stream = ByteBuffer.wrap(icmp.toByteArray())
         val parsed = NextHeader.Companion.fromStream(stream, IpType.ICMP.value) as ICMPNextHeaderWrapper
         assertEquals(icmp, parsed)
@@ -28,8 +31,10 @@ class IcmpTest {
                 ICMPv6EchoPacket(
                     id = 1u,
                     sequence = 2u,
-                    data = "hello".toByteArray()
-                ), IpType.IPV6_ICMP.value, "ICMPv6"
+                    data = "hello".toByteArray(),
+                ),
+                IpType.IPV6_ICMP.value,
+                "ICMPv6",
             )
         val stream = ByteBuffer.wrap(icmp.toByteArray())
         val parsed = NextHeader.Companion.fromStream(stream, IpType.IPV6_ICMP.value) as ICMPNextHeaderWrapper

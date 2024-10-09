@@ -38,9 +38,7 @@ data class Ipv6HopByHopOptions(
     init {
         // dummy check to ensure length matches the option data
         val optionDataLength = optionData.sumOf { it.size() }
-        logger.debug("Option data length: {}", optionDataLength)
         val fullLength = 2 + optionDataLength
-        logger.debug("Full length: {}", fullLength)
         val octet8Lengths = (fullLength / 8.0) - 1
         if (octet8Lengths != length.toDouble()) {
             throw IllegalArgumentException("(Option data length / 8 must match the length field, have $octet8Lengths, expecting $length")
@@ -48,8 +46,6 @@ data class Ipv6HopByHopOptions(
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(Ipv6HopByHopOptions::class.java)
-
         /**
          * Assumes that the stream has already had the nextHeader and length parsed from it
          */
@@ -61,10 +57,8 @@ data class Ipv6HopByHopOptions(
             val limit = (((length + 1u) * 8u) - 2u).toInt()
             val optionData = mutableListOf<Ipv6Tlv>()
             val start = stream.position()
-            logger.debug("LENGTH: {} POSITION: {} LIMIT: {}", length, start, limit)
             while (stream.position() - start < limit) {
                 val nextTlv = Ipv6Tlv.fromStream(stream)
-                logger.debug("Parsed TLV: {}", nextTlv)
                 optionData.add(nextTlv)
             }
             return Ipv6HopByHopOptions(nextHeader, length, optionData)
@@ -75,7 +69,6 @@ data class Ipv6HopByHopOptions(
         val buffer = ByteBuffer.allocate(getExtensionLengthInBytes())
         buffer.order(order)
         buffer.put(super.toByteArray(order))
-        LoggerFactory.getLogger(javaClass).debug("POS: {} LIMIT: {}", buffer.position(), buffer.limit())
         optionData.forEach {
             buffer.put(it.toByteArray())
         }

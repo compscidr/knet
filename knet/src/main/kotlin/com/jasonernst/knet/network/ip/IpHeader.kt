@@ -97,9 +97,14 @@ interface IpHeader {
     // ipv4 or ipv6
     val version: UByte
 
-    // 8-bits, Next-layer protocol (TCP, UDP, ICMP, etc)
+    // 8-bits, Next-layer protocol (TCP, UDP, ICMP, etc) on Ipv4. On Ipv6, this can be the protocol
+    // of the next extension header, or the next layer protocol if there are no more extension headers
     // from this list: https://en.wikipedia.org/wiki/List_of_IP_protocol_numbers
     val protocol: UByte
+
+    // on IPv4, this is the same as above, but on IPv6, this is the next header from the last
+    // extension header
+    fun getNextHeaderProtocol(): UByte
 
     val sourceAddress: InetAddress
     val destinationAddress: InetAddress

@@ -388,4 +388,6 @@ data class Ipv4Header(
         }
         return packetList
     }
+
+    override fun getNextHeaderProtocol(): UByte = protocol
 }

@@ -17,17 +17,18 @@ import kotlin.math.ceil
 class Ipv4FragmentTest {
     @Test
     fun fragmentationAndReassembly() {
-        val payload = IpHeaderTest.Companion.byteArrayOfInts(
-            0x01,
-            0x02,
-            0x03,
-            0x04,
-            0x05,
-            0x06,
-            0x07,
-            0x08,
-            0x09
-        )
+        val payload =
+            IpHeaderTest.Companion.byteArrayOfInts(
+                0x01,
+                0x02,
+                0x03,
+                0x04,
+                0x05,
+                0x06,
+                0x07,
+                0x08,
+                0x09,
+            )
         val ipv4Header = Ipv4Header(totalLength = (IP4_MIN_HEADER_LENGTH + payload.size.toUShort()).toUShort(), dontFragment = false)
         val fragmentSize = closestDivisibleBy(IP4_MIN_HEADER_LENGTH + (payload.size / 2).toUInt(), 8u)
         val fragments = ipv4Header.fragment(fragmentSize, payload)
