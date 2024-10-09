@@ -3,8 +3,10 @@
 [![codecov](https://codecov.io/gh/compscidr/knet/graph/badge.svg?token=yBstrWw9Mm)](https://codecov.io/gh/compscidr/knet)&nbsp;
 
 Kotlin user-space network stack. This can be used for:
+- An anonymous proxy (https://github.com/compscidr/kanonproxy)
+- An android packet inspector (https://github.com/compscidr/packetdumper/tree/jason/example-app)
 - An android VPN client / server
-- A kotlin / java TUN/TAP device
+- A kotlin / java linux TUN/TAP device
 - Interop testing with other network protocol implementations
 
 ## What is implemented
