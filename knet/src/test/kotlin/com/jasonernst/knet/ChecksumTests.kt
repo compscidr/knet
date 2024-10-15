@@ -1,6 +1,7 @@
 package com.jasonernst.knet
 
 import com.jasonernst.icmp_common.PacketHeaderException
+import com.jasonernst.knet.datalink.EthernetHeader
 import com.jasonernst.knet.network.ip.IpHeader
 import com.jasonernst.knet.network.nextheader.NextHeader
 import com.jasonernst.knet.transport.TransportHeader
@@ -116,5 +117,57 @@ class ChecksumTests {
         stream.get(payload)
 
         udpHeader.computeChecksum(ipHeader, payload, true)
+    }
+
+    @Test fun ipv6TcpBadChecksum() {
+        val filename = "/test_packets/ipv6_tcp_badchecksum.dump"
+        val resource =
+            javaClass.getResource(filename)
+                ?: throw FileNotFoundException("Could not find test dump: $filename")
+        val stream = TextFilePacketDumper.parseFile(resource.file, true)
+        logger.debug("Read buffer length: {}", stream.limit())
+
+        EthernetHeader.fromStream(stream)
+        val ipHeader = IpHeader.fromStream(stream)
+        logger.debug("IP Header: {}", ipHeader)
+        val nextHeader = NextHeader.fromStream(stream, ipHeader.protocol)
+        assertTrue(nextHeader is TransportHeader)
+        assertTrue(nextHeader is TcpHeader)
+        val tcpHeader = nextHeader as TcpHeader
+
+        // this may be a bad checksum because the length of the payload is truncated, so we'll
+        // do a min check to prevent buffer underflow
+        val remainingPayloadSize = min(stream.remaining(), ipHeader.getPayloadLength().toInt() - tcpHeader.getHeaderLength().toInt())
+        val payload = ByteArray(remainingPayloadSize)
+        stream.get(payload)
+
+        assertThrows<PacketHeaderException> {
+            tcpHeader.computeChecksum(ipHeader, payload, true)
+        }
+    }
+
+    @Test fun ipv6TcpGoodChecksum() {
+        val filename = "/test_packets/ipv6_tcp_goodchecksum.dump"
+        val resource =
+            javaClass.getResource(filename)
+                ?: throw FileNotFoundException("Could not find test dump: $filename")
+        val stream = TextFilePacketDumper.parseFile(resource.file, true)
+        logger.debug("Read buffer length: {}", stream.limit())
+
+        EthernetHeader.fromStream(stream)
+        val ipHeader = IpHeader.fromStream(stream)
+        logger.debug("IP Header: {}", ipHeader)
+        val nextHeader = NextHeader.fromStream(stream, ipHeader.protocol)
+        assertTrue(nextHeader is TransportHeader)
+        assertTrue(nextHeader is TcpHeader)
+        val tcpHeader = nextHeader as TcpHeader
+
+        // this may be a bad checksum because the length of the payload is truncated, so we'll
+        // do a min check to prevent buffer underflow
+        val remainingPayloadSize = min(stream.remaining(), ipHeader.getPayloadLength().toInt() - tcpHeader.getHeaderLength().toInt())
+        val payload = ByteArray(remainingPayloadSize)
+        stream.get(payload)
+
+        tcpHeader.computeChecksum(ipHeader, payload, true)
     }
 }

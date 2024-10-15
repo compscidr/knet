@@ -4,6 +4,7 @@ import com.jasonernst.icmp_common.Checksum
 import com.jasonernst.icmp_common.PacketHeaderException
 import com.jasonernst.knet.network.ip.IpHeader
 import com.jasonernst.knet.network.ip.v4.Ipv4Header
+import com.jasonernst.knet.network.ip.v6.Ipv6Header
 import com.jasonernst.knet.network.ip.v6.Ipv6Header.Companion.IP6_HEADER_SIZE
 import com.jasonernst.knet.network.nextheader.NextHeader
 import com.jasonernst.knet.transport.tcp.TcpHeader
@@ -48,9 +49,18 @@ interface TransportHeader : NextHeader {
             pseudoHeader.put(0)
             pseudoHeader.put(ipHeader.protocol.toByte())
             pseudoHeader.putShort(ipHeader.getPayloadLength().toShort())
-        } else {
+        } else if (ipHeader is Ipv6Header) {
+            val extensionHeaderLength = ipHeader.extensionHeaders.sumOf { it.getExtensionLengthInBytes() }
+            val tcpLength = ipHeader.getPayloadLength().toInt() - extensionHeaderLength
             // https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_checksum_for_IPv6
-            pseudoHeader = ByteBuffer.allocate(IP6_HEADER_SIZE.toInt())
+            pseudoHeader = ByteBuffer.allocate(IP6_HEADER_SIZE.toInt() + tcpLength)
+            pseudoHeader.put(ipHeader.sourceAddress.address)
+            pseudoHeader.put(ipHeader.destinationAddress.address)
+            pseudoHeader.putInt(tcpLength)
+            val nextHeader = (ipHeader.extensionHeaders.lastOrNull()?.nextHeader ?: ipHeader.protocol).toInt()
+            pseudoHeader.putInt(nextHeader)
+        } else {
+            throw IllegalArgumentException("Unknown IP header type")
         }
         val pseudoHeaderTransportStart = pseudoHeader.position()
         pseudoHeader.put(toByteArray())
