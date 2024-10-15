@@ -13,13 +13,13 @@ import kotlin.random.Random
 
 data class TcpHeader(
     // 16-bits, source port
-    override var sourcePort: UShort = Random.nextInt(UShort.MAX_VALUE.toInt()).toUShort(),
+    override val sourcePort: UShort = Random.nextInt(UShort.MAX_VALUE.toInt()).toUShort(),
     // 16-bits, destination port
-    override var destinationPort: UShort = Random.nextInt(UShort.MAX_VALUE.toInt()).toUShort(),
+    override val destinationPort: UShort = Random.nextInt(UShort.MAX_VALUE.toInt()).toUShort(),
     // 32-bits, sequence number
     val sequenceNumber: UInt = 0U,
     // 32-bits, acknowledgement number (if ack set)
-    var acknowledgementNumber: UInt = 0u,
+    val acknowledgementNumber: UInt = 0u,
     // indicates the header size + options size, in 32-bit words. This shares a byte with NS, so
     // updating either requires dataOffsetAndNs to be updated. the Offset should never be updated
     // directly - but should only be updated when the tcpOptions list changes.
@@ -66,6 +66,7 @@ data class TcpHeader(
         // https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/description-tcp-features
         const val OFFSET_MIN: UByte = 5u // min because that's the minimum size of a TCP header
         const val OFFSET_MAX: UByte = 15u // maximum because its a 4-bit field
+        const val CHECKSUM_OFFSET: UByte = 16u // offset of the checksum field in the TCP header
         const val TCP_WORD_LENGTH: UByte = 4u
 
         // with no options

@@ -45,7 +45,7 @@ data class Ipv6Header(
 
     companion object {
         private val logger = LoggerFactory.getLogger(javaClass)
-        private const val IP6_HEADER_SIZE: UShort = 40u // ipv6 header is not variable like ipv4
+        const val IP6_HEADER_SIZE: UShort = 40u // ipv6 header is not variable like ipv4
 
         // The Per-Fragment headers must consist of the IPv6 header plus any
         //      extension headers that must be processed by nodes en route to the

@@ -21,6 +21,7 @@ data class UdpHeader(
 ) : TransportHeader {
     companion object {
         const val UDP_HEADER_LENGTH: UShort = 8u // udp header is not variable size unlike TCP
+        const val CHECKSUM_OFFSET = 6u
 
         fun fromStream(stream: ByteBuffer): UdpHeader {
             // ensure we have enough capacity in the stream to parse out a full header

@@ -3,6 +3,7 @@ package com.jasonernst.knet
 import com.jasonernst.knet.network.ip.IpHeader
 import com.jasonernst.knet.network.ip.IpType
 import com.jasonernst.knet.network.nextheader.NextHeader
+import com.jasonernst.knet.transport.TransportHeader
 import com.jasonernst.knet.transport.tcp.TcpHeader
 import com.jasonernst.knet.transport.udp.UdpHeader
 import com.jasonernst.packetdumper.stringdumper.StringPacketDumper
@@ -33,15 +34,9 @@ class EncapsulationTests {
         val ipPayloadSize = nextHeader.getHeaderLength().toInt() + payload.size
         val ipHeader = IpHeader.createIPHeader(sourceAddress.address, destinationAddress.address, protocol, ipPayloadSize)
         logger.debug("IP Header: {}", ipHeader)
-
-        // compute checksums
-        // TODO: fix this
-//        if (transportHeader is UDPHeader) {
-//            transportHeader.checksum = TransportHeaderFactoryImpl.computeChecksum(ipHeader, transportHeader, payload)
-//        } else if (transportHeader is TCPHeader) {
-//            transportHeader.checksum = TransportHeaderFactoryImpl.computeChecksum(ipHeader, transportHeader, payload)
-//        }
-
+        if (nextHeader is TransportHeader) {
+            nextHeader.checksum = nextHeader.computeChecksum(ipHeader, payload)
+        }
         val stringPacketDumper = StringPacketDumper()
         val packet = Packet(ipHeader, nextHeader, payload)
         val stream = ByteBuffer.wrap(packet.toByteArray())

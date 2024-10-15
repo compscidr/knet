@@ -6,7 +6,7 @@ import org.junit.jupiter.api.assertThrows
 import java.nio.ByteBuffer
 
 class NextHeaderTests {
-    @Test fun unsupportedNextHeaer() {
+    @Test fun unsupportedNextHeader() {
         assertThrows<IllegalArgumentException> {
             NextHeader.Companion.fromStream(ByteBuffer.allocate(0), IpType.IPV6_FRAG.value)
         }
