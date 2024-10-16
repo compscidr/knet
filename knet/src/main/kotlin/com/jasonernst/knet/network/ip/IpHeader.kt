@@ -67,6 +67,7 @@ interface IpHeader {
             }
             return when (sourceAddress) {
                 is Inet4Address -> {
+                    destinationAddress as Inet4Address
                     val totalLength = (IP4_MIN_HEADER_LENGTH + payloadSize.toUShort()).toUShort()
                     Ipv4Header(
                         sourceAddress = sourceAddress,
@@ -76,6 +77,7 @@ interface IpHeader {
                     )
                 }
                 is Inet6Address -> {
+                    destinationAddress as Inet6Address
                     Ipv6Header(
                         sourceAddress = sourceAddress,
                         destinationAddress = destinationAddress,

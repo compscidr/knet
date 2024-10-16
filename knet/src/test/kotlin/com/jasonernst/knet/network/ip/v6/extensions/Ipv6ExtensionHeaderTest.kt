@@ -43,8 +43,8 @@ class Ipv6ExtensionHeaderTest {
                 flowLabel = 0x12345u,
                 protocol = IpType.HOPOPT.value,
                 hopLimit = 0x40u,
-                sourceAddress = Inet6Address.getByName("::1"),
-                destinationAddress = Inet6Address.getByName("::1"),
+                sourceAddress = Inet6Address.getByName("::1") as Inet6Address,
+                destinationAddress = Inet6Address.getByName("::1") as Inet6Address,
                 extensionHeaders = ipv6ExtensionHeaders,
                 payloadLength = payloadLength.toUShort(),
             )

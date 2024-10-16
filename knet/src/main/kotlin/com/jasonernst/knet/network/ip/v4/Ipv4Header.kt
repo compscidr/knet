@@ -10,9 +10,9 @@ import com.jasonernst.knet.network.ip.v4.options.Ipv4Option
 import com.jasonernst.knet.network.ip.v4.options.Ipv4Option.Companion.parseOptions
 import org.slf4j.LoggerFactory
 import java.net.Inet4Address
-import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.experimental.or
 import kotlin.math.ceil
 import kotlin.math.min
@@ -51,9 +51,9 @@ data class Ipv4Header(
     // https://en.wikipedia.org/wiki/IPv4#Header_checksum
     var headerChecksum: UShort = 0u,
     // 32-bits, source address
-    override val sourceAddress: InetAddress = Inet4Address.getLocalHost(),
+    override val sourceAddress: Inet4Address = Inet4Address.getLocalHost() as Inet4Address,
     // 32-bits, destination address
-    override val destinationAddress: InetAddress = Inet4Address.getLocalHost(),
+    override val destinationAddress: Inet4Address = Inet4Address.getLocalHost() as Inet4Address,
     val options: List<Ipv4Option> = emptyList(),
 ) : IpHeader {
     // 3-bits: set from mayFragment and lastFragment
@@ -81,7 +81,6 @@ data class Ipv4Header(
 
         // calculate the checksum for packet creation based on the set fields
         if (headerChecksum == 0u.toUShort()) {
-            logger.debug("Calculating checksum for IPv4 header")
             val buffer = toByteArray()
             // ^ this will compute the checksum and put it in the buffer
             // note: it's tempting to call the checksum function here but if we do we'll get a zero
@@ -92,6 +91,7 @@ data class Ipv4Header(
 
     companion object {
         private val logger = LoggerFactory.getLogger(Ipv4Header::class.java)
+        val packetCounter: AtomicInteger = AtomicInteger(0) // used to generate monotonic ids for Ipv4 packets
         private const val CHECKSUM_OFFSET = 10
         const val IP4_WORD_LENGTH: UByte = 4u
         val IP4_MIN_HEADER_LENGTH: UByte = (IP4_WORD_LENGTH * 5u).toUByte()

@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.slf4j.LoggerFactory
+import java.net.Inet4Address
 import java.net.InetAddress
 import java.nio.ByteBuffer
 
@@ -97,8 +98,8 @@ class Ipv4HeaderTest {
 
     @Test
     fun toBufferDontFragmentTest() {
-        val source = InetAddress.getByName("127.0.0.1")
-        val destination = InetAddress.getByName("8.8.8.8")
+        val source = InetAddress.getByName("127.0.0.1") as Inet4Address
+        val destination = InetAddress.getByName("8.8.8.8") as Inet4Address
         // don't fragment = false
         val fragment =
             Ipv4Header(
@@ -151,8 +152,8 @@ class Ipv4HeaderTest {
 
     @Test
     fun toFragmentOffsetTest() {
-        val source = InetAddress.getByName("127.0.0.1")
-        val destination = InetAddress.getByName("8.8.8.8")
+        val source = InetAddress.getByName("127.0.0.1") as Inet4Address
+        val destination = InetAddress.getByName("8.8.8.8") as Inet4Address
         // don't fragment = false
         val ipv4header =
             Ipv4Header(
@@ -180,8 +181,8 @@ class Ipv4HeaderTest {
 
     @Test
     fun toBufferDscpEcnTest() {
-        val source = InetAddress.getByName("127.0.0.1")
-        val destination = InetAddress.getByName("8.8.8.8")
+        val source = InetAddress.getByName("127.0.0.1") as Inet4Address
+        val destination = InetAddress.getByName("8.8.8.8") as Inet4Address
         // don't fragment = false
         val ipv4header =
             Ipv4Header(

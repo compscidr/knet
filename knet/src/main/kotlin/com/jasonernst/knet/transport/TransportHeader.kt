@@ -9,7 +9,6 @@ import com.jasonernst.knet.network.ip.v6.Ipv6Header.Companion.IP6_HEADER_SIZE
 import com.jasonernst.knet.network.nextheader.NextHeader
 import com.jasonernst.knet.transport.tcp.TcpHeader
 import com.jasonernst.knet.transport.udp.UdpHeader
-import com.jasonernst.packetdumper.stringdumper.StringPacketDumper
 import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 
@@ -79,7 +78,6 @@ interface TransportHeader : NextHeader {
             }
         }
         pseudoHeader.rewind()
-        logger.debug("Pseudo header: {}", StringPacketDumper().dumpBufferToString(pseudoHeader))
         val computedChecksum = Checksum.calculateChecksum(pseudoHeader)
 
         if (verify) {

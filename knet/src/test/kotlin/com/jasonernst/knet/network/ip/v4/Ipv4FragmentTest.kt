@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.net.InetAddress
+import java.net.Inet4Address
 import kotlin.math.ceil
 
 class Ipv4FragmentTest {
@@ -85,12 +85,12 @@ class Ipv4FragmentTest {
             Ipv4Header.reassemble(listOf(Pair(ipv4Header, ByteArray(0)), Pair(ipv4Header3, ByteArray(0))))
         }
 
-        val ipv4Header4 = Ipv4Header(id = 1u, sourceAddress = InetAddress.getLoopbackAddress())
+        val ipv4Header4 = Ipv4Header(id = 1u, sourceAddress = Inet4Address.getByName("127.0.0.1") as Inet4Address)
         assertThrows<IllegalArgumentException> {
             Ipv4Header.reassemble(listOf(Pair(ipv4Header, ByteArray(0)), Pair(ipv4Header4, ByteArray(0))))
         }
 
-        val ipv4Header5 = Ipv4Header(id = 1u, destinationAddress = InetAddress.getLoopbackAddress())
+        val ipv4Header5 = Ipv4Header(id = 1u, destinationAddress = Inet4Address.getByName("127.0.0.1") as Inet4Address)
         assertThrows<IllegalArgumentException> {
             Ipv4Header.reassemble(listOf(Pair(ipv4Header, ByteArray(0)), Pair(ipv4Header5, ByteArray(0))))
         }
