@@ -10,7 +10,6 @@ import com.jasonernst.knet.network.ip.v6.extenions.Ipv6Fragment
 import com.jasonernst.knet.network.nextheader.NextHeader
 import org.slf4j.LoggerFactory
 import java.net.Inet6Address
-import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -31,9 +30,9 @@ data class Ipv6Header(
     // 8-bits: hop limit, decremented by 1 at each hop, if 0, packet is discarded, similar to TTL
     val hopLimit: UByte = 0u,
     // 128-bits: source address
-    override val sourceAddress: InetAddress = Inet6Address.getByName("::1"),
+    override val sourceAddress: Inet6Address = Inet6Address.getByName("::1") as Inet6Address,
     // 128-bits: destination address
-    override val destinationAddress: InetAddress = Inet6Address.getByName("::1"),
+    override val destinationAddress: Inet6Address = Inet6Address.getByName("::1") as Inet6Address,
     val extensionHeaders: List<Ipv6ExtensionHeader> = emptyList(),
 ) : IpHeader {
     init {
