@@ -7,7 +7,6 @@ on:
   pull_request:
     types: [ opened, synchronize ]
     paths:
-      - 'knet/**'
       - '.github/workflows/test.yml'
       - 'build.gradle.kts'
       - 'settings.gradle.kts'
