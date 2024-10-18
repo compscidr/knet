@@ -6,11 +6,6 @@ on:
       - main
   pull_request:
     types: [ opened, synchronize ]
-    paths:
-      - '.github/workflows/test.yml'
-      - 'build.gradle.kts'
-      - 'settings.gradle.kts'
-      - 'gradle/libs.versions.toml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
