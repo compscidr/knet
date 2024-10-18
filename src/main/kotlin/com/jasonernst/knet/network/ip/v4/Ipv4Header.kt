@@ -56,18 +56,18 @@ data class Ipv4Header(
     override val destinationAddress: Inet4Address = Inet4Address.getLocalHost() as Inet4Address,
     val options: List<Ipv4Option> = emptyList(),
 ) : IpHeader {
-    // 3-bits: set from mayFragment and lastFragment
+    // 3-bits high bits: set from mayFragment and lastFragment
     // bit 0: Reserved; must be zero
     // bit 1: Don't Fragment (DF)
     // bit 2: More Fragments (MF)
-    private var flag: Byte = 0
+    private var flag: UShort = 0u
 
     init {
         if (dontFragment) {
-            flag = flag or 0x40
+            flag = flag or 0x4000u
         }
-        if (lastFragment) {
-            flag = flag or 0x20
+        if (!lastFragment) {
+            flag = flag or 0x2000u
         }
 
         // dummy check that ihl matches the options length
@@ -130,7 +130,7 @@ data class Ipv4Header(
             val id = stream.short.toUShort()
             val flagsAndFragmentOffset = stream.short.toUShort()
             val dontFragment = flagsAndFragmentOffset.toInt() and 0x4000 != 0
-            val lastFragment = flagsAndFragmentOffset.toInt() and 0x2000 != 0
+            val lastFragment = flagsAndFragmentOffset.toInt() and 0x2000 == 0
             val fragmentOffset: UShort = (flagsAndFragmentOffset.toInt() and 0x1FFF).toUShort()
             val ttl = stream.get().toUByte()
             val protocol = stream.get().toUByte()
@@ -244,7 +244,7 @@ data class Ipv4Header(
         buffer.putShort(id.toShort())
 
         // combine flags + fragmentation
-        val flagsFrags = ((flag.toInt() shl 8) + fragmentOffset.toInt()).toUShort()
+        val flagsFrags = (flag.toInt() + fragmentOffset.toInt()).toUShort()
         buffer.putShort(flagsFrags.toShort())
         buffer.put(ttl.toByte())
         buffer.put(protocol.toByte())
