@@ -13,4 +13,3 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "knet"
-include(":knet")

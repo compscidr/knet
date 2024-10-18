@@ -7,7 +7,6 @@ on:
   pull_request:
     types: [ opened, synchronize ]
     paths:
-      - 'knet/**'
       - '.github/workflows/test.yml'
       - 'build.gradle.kts'
       - 'settings.gradle.kts'
@@ -30,13 +29,6 @@ jobs:
           java-version: 17
           distribution: temurin
 
-      # outputs the host name of the runner to help debug if there are multiple runners with same
-      # prefix
-      - name: Debug Hostname and IP
-        run: |
-          echo "Runner host: $HOST_NAME"
-          curl https://api.ipify.org
-
       - name: Lint
         run: ./gradlew lintKotlin
 
@@ -47,7 +39,7 @@ jobs:
         run: ./gradlew assemble
 
       - name: Lib tests
-        run: ./gradlew test -DexcludeTags="Nightly"
+        run: ./gradlew test
         timeout-minutes: 10
 
       - name: Upload reports to Codecov
