@@ -3,11 +3,13 @@ package com.jasonernst.knet
 import com.jasonernst.icmp_common.PacketHeaderException
 import com.jasonernst.knet.datalink.EthernetHeader
 import com.jasonernst.knet.network.ip.IpHeader
+import com.jasonernst.knet.network.ip.v6.Ipv6Header
 import com.jasonernst.knet.network.nextheader.NextHeader
 import com.jasonernst.knet.transport.TransportHeader
 import com.jasonernst.knet.transport.tcp.TcpHeader
 import com.jasonernst.knet.transport.udp.UdpHeader
 import com.jasonernst.packetdumper.filedumper.TextFilePacketDumper
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -169,5 +171,15 @@ class ChecksumTests {
         stream.get(payload)
 
         tcpHeader.computeChecksum(ipHeader, payload, true)
+    }
+
+    /**
+     * Regression test where the correct checksum was being computed but not returned.
+     */
+    @Test fun ensureTcpChecksumIsReturned() {
+        val tcpHeader = TcpHeader()
+        val ipHeader = Ipv6Header(payloadLength = tcpHeader.getHeaderLength())
+        val checksum = tcpHeader.computeChecksum(ipHeader, ByteArray(0))
+        assertNotEquals(0u, checksum.toUInt())
     }
 }

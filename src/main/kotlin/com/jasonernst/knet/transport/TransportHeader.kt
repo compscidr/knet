@@ -25,7 +25,9 @@ interface TransportHeader : NextHeader {
     }
 
     /**
-     * Compute the checksum for the header + payload
+     * Compute the checksum for the header + payload. Note: this function does not set the checksum, it only returns
+     * it. It is up to the caller to replace the checksum in the header with this computed version if they wish.
+     *
      * @param ipHeader the IP header used in the checksum calculation
      * @param payload the payload used in the checksum calculation
      * @param verify - if true, the checksum will be verified against the checksum in the header
@@ -97,6 +99,6 @@ interface TransportHeader : NextHeader {
             }
         }
 
-        return checksum
+        return computedChecksum
     }
 }
