@@ -1,5 +1,6 @@
 package com.jasonernst.knet.network.ip.v4
 
+import com.jasonernst.knet.network.ip.IpHeader
 import com.jasonernst.knet.network.ip.IpHeader.Companion.closestDivisibleBy
 import com.jasonernst.knet.network.ip.IpHeaderTest
 import com.jasonernst.knet.network.ip.IpType
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.slf4j.LoggerFactory
 import java.net.Inet4Address
+import java.nio.ByteBuffer
 import kotlin.math.ceil
 
 class Ipv4FragmentTest {
@@ -139,22 +141,34 @@ class Ipv4FragmentTest {
     @Test
     fun testFlags() {
         // don't fragment, more fragments
-        val dontFragmentMoreFragments = Ipv4Header(dontFragment = true, lastFragment = false).toByteArray()
+        val ipv4Header1 = Ipv4Header(dontFragment = true, lastFragment = false)
+        val dontFragmentMoreFragments = ipv4Header1.toByteArray()
         assertEquals(0x60u, dontFragmentMoreFragments[6].toUInt())
+        val parsedHeader1 = Ipv4Header.fromStream(ByteBuffer.wrap(dontFragmentMoreFragments))
+        assertEquals(ipv4Header1, parsedHeader1)
 
         // don't fragment, no more fragments (default)
-        val dontFragmentNoMoreFragments = Ipv4Header(dontFragment = true, lastFragment = true).toByteArray()
+        val ipv4Header2 = Ipv4Header(dontFragment = true, lastFragment = true)
+        val dontFragmentNoMoreFragments = ipv4Header2.toByteArray()
         assertEquals(0x40u, dontFragmentNoMoreFragments[6].toUInt())
+        val parsedHeader2 = Ipv4Header.fromStream(ByteBuffer.wrap(dontFragmentNoMoreFragments))
+        assertEquals(ipv4Header2, parsedHeader2)
 
         val default = Ipv4Header().toByteArray()
         assertEquals(0x40u, default[6].toUInt())
 
         // do fragment, more fragments
-        val doFragmentMoreFragments = Ipv4Header(dontFragment = false, lastFragment = false).toByteArray()
+        val ipv4Header3 = Ipv4Header(dontFragment = false, lastFragment = false)
+        val doFragmentMoreFragments = ipv4Header3.toByteArray()
         assertEquals(0x20u, doFragmentMoreFragments[6].toUInt())
+        val parsedHeader3 = Ipv4Header.fromStream(ByteBuffer.wrap(doFragmentMoreFragments))
+        assertEquals(ipv4Header3, parsedHeader3)
 
         // do fragment, no more fragments
-        val doFragmentNoMoreFragments = Ipv4Header(dontFragment = false, lastFragment = true).toByteArray()
+        val ipv4Header4 = Ipv4Header(dontFragment = false, lastFragment = true)
+        val doFragmentNoMoreFragments = ipv4Header4.toByteArray()
         assertEquals(0x00u, doFragmentNoMoreFragments[6].toUInt())
+        val parsedHeader4 = Ipv4Header.fromStream(ByteBuffer.wrap(doFragmentNoMoreFragments))
+        assertEquals(ipv4Header4, parsedHeader4)
     }
 }
