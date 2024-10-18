@@ -11,10 +11,13 @@ import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.slf4j.LoggerFactory
 import java.net.Inet4Address
 import kotlin.math.ceil
 
 class Ipv4FragmentTest {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     @Test
     fun fragmentationAndReassembly() {
         val payload =
@@ -128,5 +131,30 @@ class Ipv4FragmentTest {
         val reassembly = Ipv4Header.reassemble(fragments)
         assertEquals(ipv4Header, reassembly.first)
         assertArrayEquals(payload, reassembly.second)
+    }
+
+    /**
+     * Prevent regression on flags being wrong
+     */
+    @Test
+    fun testFlags() {
+        // don't fragment, more fragments
+        val dontFragmentMoreFragments = Ipv4Header(dontFragment = true, lastFragment = false).toByteArray()
+        assertEquals(0x60u, dontFragmentMoreFragments[6].toUInt())
+
+        // don't fragment, no more fragments (default)
+        val dontFragmentNoMoreFragments = Ipv4Header(dontFragment = true, lastFragment = true).toByteArray()
+        assertEquals(0x40u, dontFragmentNoMoreFragments[6].toUInt())
+
+        val default = Ipv4Header().toByteArray()
+        assertEquals(0x40u, default[6].toUInt())
+
+        // do fragment, more fragments
+        val doFragmentMoreFragments = Ipv4Header(dontFragment = false, lastFragment = false).toByteArray()
+        assertEquals(0x20u, doFragmentMoreFragments[6].toUInt())
+
+        // do fragment, no more fragments
+        val doFragmentNoMoreFragments = Ipv4Header(dontFragment = false, lastFragment = true).toByteArray()
+        assertEquals(0x00u, doFragmentNoMoreFragments[6].toUInt())
     }
 }
