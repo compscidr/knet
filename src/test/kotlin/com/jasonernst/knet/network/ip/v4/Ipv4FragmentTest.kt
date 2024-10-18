@@ -1,6 +1,5 @@
 package com.jasonernst.knet.network.ip.v4
 
-import com.jasonernst.knet.network.ip.IpHeader
 import com.jasonernst.knet.network.ip.IpHeader.Companion.closestDivisibleBy
 import com.jasonernst.knet.network.ip.IpHeaderTest
 import com.jasonernst.knet.network.ip.IpType
