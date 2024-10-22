@@ -23,14 +23,9 @@ data class Packet(
 
         fun fromStream(stream: ByteBuffer): Packet {
             val ipHeader = IpHeader.fromStream(stream)
-            logger.debug("IP header: {}", ipHeader)
             val nextHeaderLimit = ipHeader.getTotalLength() - ipHeader.getHeaderLength()
             val nextHeader = NextHeader.fromStream(stream, ipHeader.getNextHeaderProtocol(), nextHeaderLimit.toInt())
-            logger.debug("Next header: {}", nextHeader)
             val expectedRemaining = (ipHeader.getTotalLength() - ipHeader.getHeaderLength() - nextHeader.getHeaderLength()).toInt()
-            logger.debug(
-                "IP Header total length: ${ipHeader.getTotalLength()}, IP Header length: ${ipHeader.getHeaderLength()}, Next header length: ${nextHeader.getHeaderLength()}, Expected remaining: $expectedRemaining",
-            )
             if (stream.remaining() < expectedRemaining) {
                 throw PacketTooShortException(
                     "Packet too short to obtain entire payload, have ${stream.remaining()}, expecting $expectedRemaining",
@@ -43,16 +38,12 @@ data class Packet(
     }
 
     fun toByteArray(order: ByteOrder = ByteOrder.BIG_ENDIAN): ByteArray {
-        logger.debug("Allocating ${ipHeader.getTotalLength()} bytes for packet")
         val buffer = ByteBuffer.allocate(ipHeader.getTotalLength().toInt())
         buffer.order(order)
         val ipHeaderBytes = ipHeader.toByteArray()
-        logger.debug("Have ${ipHeaderBytes.size} bytes for IP header")
         buffer.put(ipHeaderBytes)
         val nextHeaderBytes = nextHeaders.toByteArray()
-        logger.debug("Have ${nextHeaderBytes.size} bytes for next headers")
         buffer.put(nextHeaderBytes)
-        logger.debug("Have ${payload.size} bytes for payload")
         buffer.put(payload)
         return buffer.array()
     }

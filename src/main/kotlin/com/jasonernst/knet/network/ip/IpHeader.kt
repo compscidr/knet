@@ -39,11 +39,9 @@ interface IpHeader {
             stream.position(start)
             return when (val version = (versionByte.toInt() shr 4 and 0x0F).toUByte()) {
                 IP4_VERSION -> {
-                    logger.debug("IPv4 packet")
                     Ipv4Header.fromStream(stream)
                 }
                 IP6_VERSION -> {
-                    logger.debug("IPv6 packet")
                     Ipv6Header.fromStream(stream)
                 }
                 else -> {
