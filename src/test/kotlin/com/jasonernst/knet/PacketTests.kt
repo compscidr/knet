@@ -88,7 +88,7 @@ class PacketTests {
         assertNotEquals(packet, Any())
         assertEquals(packet, packet)
 
-        val packet5 = packet.copy()
+        val packet5 = Packet(ipHeader, tcpHeader, ByteArray(0))
         assertEquals(packet.ipHeader, packet5.ipHeader)
         assertEquals(packet.nextHeaders, packet5.nextHeaders)
         assertArrayEquals(packet.payload, packet5.payload)
