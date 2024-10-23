@@ -108,7 +108,6 @@ data class Ipv4Header(
 
             // ensure we have an IPv4 packet
             val versionAndHeaderLength = stream.get().toUByte()
-            logger.debug("Version and Header Length: $versionAndHeaderLength")
             val ipVersion = (versionAndHeaderLength.toInt() shr 4 and 0x0F).toUByte()
             if (ipVersion != IP4_VERSION) {
                 throw IllegalArgumentException("Invalid IPv4 header. IP version should be 4 but was $ipVersion")
@@ -193,7 +192,6 @@ data class Ipv4Header(
             }
             val firstFragment = fragments[0]
             val totalPayloadLength = fragments.sumOf { it.first.totalLength - it.first.getHeaderLength() }
-            logger.debug("TOTAL PAYLOAD LEN: $totalPayloadLength")
             val payload = ByteArray(totalPayloadLength.toInt())
             for (fragment in fragments) {
                 if (fragment.first.id != firstFragment.first.id ||
@@ -335,7 +333,6 @@ data class Ipv4Header(
         var lastFragment = false
         var payloadPosition = 0u
         var payloadPerPacket = min(payload.size - payloadPosition.toInt(), closestDivisibleBy(maxSize - getHeaderLength(), 8u).toInt())
-        logger.debug("PAYLOAD PER PACKET: $payloadPerPacket HEADERSIZE: ${getHeaderLength()}")
         if (payloadPosition.toInt() + payloadPerPacket == payload.size) {
             lastFragment = true
         }
