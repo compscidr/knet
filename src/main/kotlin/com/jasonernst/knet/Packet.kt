@@ -70,4 +70,8 @@ open class Packet(
         result = 31 * result + payload.contentHashCode()
         return result
     }
+
+    override fun toString(): String {
+        return "Packet(ipHeader=$ipHeader, nextHeaders=$nextHeaders, payloadSize=${payload?.size ?: 0})"
+    }
 }
