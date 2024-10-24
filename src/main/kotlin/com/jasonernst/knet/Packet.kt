@@ -71,7 +71,5 @@ open class Packet(
         return result
     }
 
-    override fun toString(): String {
-        return "Packet(ipHeader=$ipHeader, nextHeaders=$nextHeaders, payloadSize=${payload?.size ?: 0})"
-    }
+    override fun toString(): String = "Packet(ipHeader=$ipHeader, nextHeaders=$nextHeaders, payloadSize=${payload?.size ?: 0})"
 }
