@@ -13,7 +13,7 @@ class IcmpTest {
     @Test
     fun icmpv4() {
         val icmp =
-            ICMPNextHeaderWrapper(
+            IcmpNextHeaderWrapper(
                 IcmpV4EchoPacket(
                     id = 1u,
                     sequence = 2u,
@@ -24,14 +24,14 @@ class IcmpTest {
             )
         val stream = ByteBuffer.wrap(icmp.toByteArray())
         val ipV4Header = Ipv4Header(protocol = IpType.ICMP.value)
-        val parsed = NextHeader.Companion.fromStream(ipV4Header, stream) as ICMPNextHeaderWrapper
+        val parsed = NextHeader.Companion.fromStream(ipV4Header, stream) as IcmpNextHeaderWrapper
         assertEquals(icmp, parsed)
     }
 
     @Test fun icmpv6() {
         val ipV6Header = Ipv6Header(protocol = IpType.IPV6_ICMP.value)
         val icmp =
-            ICMPNextHeaderWrapper(
+            IcmpNextHeaderWrapper(
                 IcmpV6EchoPacket(
                     ipV6Header.sourceAddress,
                     ipV6Header.destinationAddress,
@@ -43,7 +43,7 @@ class IcmpTest {
                 "ICMPv6",
             )
         val stream = ByteBuffer.wrap(icmp.toByteArray())
-        val parsed = NextHeader.Companion.fromStream(ipV6Header, stream) as ICMPNextHeaderWrapper
+        val parsed = NextHeader.Companion.fromStream(ipV6Header, stream) as IcmpNextHeaderWrapper
         assertEquals(icmp, parsed)
     }
 }
