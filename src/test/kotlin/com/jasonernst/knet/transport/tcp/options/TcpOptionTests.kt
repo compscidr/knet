@@ -218,7 +218,7 @@ class TcpOptionTests {
         val dump = stringPacketDumper.dumpBufferToString(buffer, 0, buffer.limit(), true)
         logger.debug("Buffer: \n$dump")
         val ipHeaderFromBuffer = IpHeader.fromStream(buffer)
-        val tcpHeaderFromBuffer = NextHeader.fromStream(buffer, ipHeaderFromBuffer.protocol)
+        val tcpHeaderFromBuffer = NextHeader.fromStream(ipHeaderFromBuffer, buffer)
 
         assertEquals(ipHeader, ipHeaderFromBuffer)
         assertEquals(tcpHeader, tcpHeaderFromBuffer)

@@ -1,7 +1,7 @@
 package com.jasonernst.knet.transport
 
-import com.jasonernst.icmp_common.Checksum
-import com.jasonernst.icmp_common.PacketHeaderException
+import com.jasonernst.icmp.common.Checksum
+import com.jasonernst.icmp.common.PacketHeaderException
 import com.jasonernst.knet.network.ip.IpHeader
 import com.jasonernst.knet.network.ip.v4.Ipv4Header
 import com.jasonernst.knet.network.ip.v6.Ipv6Header

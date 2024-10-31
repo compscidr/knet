@@ -48,7 +48,7 @@ class EncapsulationTests {
         logger.debug("[TEST] PARSED IP HEADER: {}", parsedIpHeader)
         assertEquals(ipHeader, parsedIpHeader)
         assertEquals(ipHeader.getPayloadLength().toInt(), stream.remaining())
-        val parsedNextHeader = NextHeader.fromStream(stream, ipHeader.protocol)
+        val parsedNextHeader = NextHeader.fromStream(ipHeader, stream)
         logger.debug("[TEST] NEXT HEADER: {}", nextHeader)
         logger.debug("[TEST] PARSED NEXT HEADER: {}", parsedNextHeader)
         assertEquals(nextHeader, parsedNextHeader)

@@ -24,7 +24,7 @@ open class Packet(
         fun fromStream(stream: ByteBuffer): Packet {
             val ipHeader = IpHeader.fromStream(stream)
             val nextHeaderLimit = ipHeader.getTotalLength() - ipHeader.getHeaderLength()
-            val nextHeader = NextHeader.fromStream(stream, ipHeader.getNextHeaderProtocol(), nextHeaderLimit.toInt())
+            val nextHeader = NextHeader.fromStream(ipHeader, stream, nextHeaderLimit.toInt())
             val expectedRemaining = (ipHeader.getTotalLength() - ipHeader.getHeaderLength() - nextHeader.getHeaderLength()).toInt()
             if (stream.remaining() < expectedRemaining) {
                 throw PacketTooShortException(

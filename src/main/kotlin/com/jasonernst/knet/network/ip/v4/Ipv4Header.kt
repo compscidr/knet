@@ -1,6 +1,6 @@
 package com.jasonernst.knet.network.ip.v4
 
-import com.jasonernst.icmp_common.Checksum
+import com.jasonernst.icmp.common.Checksum
 import com.jasonernst.knet.PacketTooShortException
 import com.jasonernst.knet.network.ip.IpHeader
 import com.jasonernst.knet.network.ip.IpHeader.Companion.IP4_VERSION
@@ -13,7 +13,6 @@ import java.net.Inet4Address
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.experimental.or
 import kotlin.math.ceil
 import kotlin.math.min
 
