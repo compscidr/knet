@@ -1,6 +1,6 @@
 package com.jasonernst.knet
 
-import com.jasonernst.icmp_common.PacketHeaderException
+import com.jasonernst.icmp.common.PacketHeaderException
 import com.jasonernst.knet.datalink.EthernetHeader
 import com.jasonernst.knet.network.ip.IpHeader
 import com.jasonernst.knet.network.ip.v6.Ipv6Header
@@ -30,7 +30,7 @@ class ChecksumTests {
 
         val ipHeader = IpHeader.fromStream(stream)
         logger.debug("IP Header: {}", ipHeader)
-        val nextHeader = NextHeader.fromStream(stream, ipHeader.protocol)
+        val nextHeader = NextHeader.fromStream(ipHeader, stream)
         assertTrue(nextHeader is TransportHeader)
         assertTrue(nextHeader is TcpHeader)
         val tcpHeader = nextHeader as TcpHeader
@@ -56,7 +56,7 @@ class ChecksumTests {
 
         val ipHeader = IpHeader.fromStream(stream)
         logger.debug("IP Header: {}", ipHeader)
-        val nextHeader = NextHeader.fromStream(stream, ipHeader.protocol)
+        val nextHeader = NextHeader.fromStream(ipHeader, stream)
         assertTrue(nextHeader is TransportHeader)
         assertTrue(nextHeader is TcpHeader)
         val tcpHeader = nextHeader as TcpHeader
@@ -80,7 +80,7 @@ class ChecksumTests {
 
         val ipHeader = IpHeader.fromStream(stream)
         logger.debug("IP Header: {}", ipHeader)
-        val nextHeader = NextHeader.fromStream(stream, ipHeader.protocol)
+        val nextHeader = NextHeader.fromStream(ipHeader, stream)
         assertTrue(nextHeader is TransportHeader)
         assertTrue(nextHeader is UdpHeader)
         val udpHeader = nextHeader as UdpHeader
@@ -106,7 +106,7 @@ class ChecksumTests {
 
         val ipHeader = IpHeader.fromStream(stream)
         logger.debug("IP Header: {}", ipHeader)
-        val nextHeader = NextHeader.fromStream(stream, ipHeader.protocol)
+        val nextHeader = NextHeader.fromStream(ipHeader, stream)
         assertTrue(nextHeader is TransportHeader)
         assertTrue(nextHeader is UdpHeader)
         val udpHeader = nextHeader as UdpHeader
@@ -132,7 +132,7 @@ class ChecksumTests {
         EthernetHeader.fromStream(stream)
         val ipHeader = IpHeader.fromStream(stream)
         logger.debug("IP Header: {}", ipHeader)
-        val nextHeader = NextHeader.fromStream(stream, ipHeader.protocol)
+        val nextHeader = NextHeader.fromStream(ipHeader, stream)
         assertTrue(nextHeader is TransportHeader)
         assertTrue(nextHeader is TcpHeader)
         val tcpHeader = nextHeader as TcpHeader
@@ -159,7 +159,7 @@ class ChecksumTests {
         EthernetHeader.fromStream(stream)
         val ipHeader = IpHeader.fromStream(stream)
         logger.debug("IP Header: {}", ipHeader)
-        val nextHeader = NextHeader.fromStream(stream, ipHeader.protocol)
+        val nextHeader = NextHeader.fromStream(ipHeader, stream)
         assertTrue(nextHeader is TransportHeader)
         assertTrue(nextHeader is TcpHeader)
         val tcpHeader = nextHeader as TcpHeader
