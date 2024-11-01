@@ -50,9 +50,9 @@ data class Ipv4Header(
     // https://en.wikipedia.org/wiki/IPv4#Header_checksum
     var headerChecksum: UShort = 0u,
     // 32-bits, source address
-    override val sourceAddress: Inet4Address = Inet4Address.getLocalHost() as Inet4Address,
+    override val sourceAddress: Inet4Address = Inet4Address.getByName("127.0.0.1") as Inet4Address,
     // 32-bits, destination address
-    override val destinationAddress: Inet4Address = Inet4Address.getLocalHost() as Inet4Address,
+    override val destinationAddress: Inet4Address = Inet4Address.getByName("127.0.0.1") as Inet4Address,
     val options: List<Ipv4Option> = emptyList(),
 ) : IpHeader {
     // 3-bits high bits: set from mayFragment and lastFragment
