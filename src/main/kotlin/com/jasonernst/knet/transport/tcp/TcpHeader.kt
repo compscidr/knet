@@ -89,8 +89,8 @@ data class TcpHeader(
 
             val expectedEnd = start + (dataOffset * TCP_WORD_LENGTH).toInt()
             val expectedRemaining = expectedEnd - stream.position()
-            logger.debug("Expecting $expectedRemaining, have ${stream.remaining()}")
             if (stream.remaining() < expectedRemaining) {
+                logger.debug("Expecting at least $expectedRemaining, have ${stream.remaining()}")
                 throw PacketTooShortException(
                     "Expected $expectedRemaining bytes left in TCP header" +
                         ", only have ${stream.remaining()}",
