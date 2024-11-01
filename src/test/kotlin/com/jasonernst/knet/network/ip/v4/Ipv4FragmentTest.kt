@@ -89,12 +89,12 @@ class Ipv4FragmentTest {
             Ipv4Header.reassemble(listOf(Pair(ipv4Header, ByteArray(0)), Pair(ipv4Header3, ByteArray(0))))
         }
 
-        val ipv4Header4 = Ipv4Header(id = 1u, sourceAddress = Inet4Address.getByName("127.0.0.1") as Inet4Address)
+        val ipv4Header4 = Ipv4Header(id = 1u, sourceAddress = Inet4Address.getByName("8.8.8.8") as Inet4Address)
         assertThrows<IllegalArgumentException> {
             Ipv4Header.reassemble(listOf(Pair(ipv4Header, ByteArray(0)), Pair(ipv4Header4, ByteArray(0))))
         }
 
-        val ipv4Header5 = Ipv4Header(id = 1u, destinationAddress = Inet4Address.getByName("127.0.0.1") as Inet4Address)
+        val ipv4Header5 = Ipv4Header(id = 1u, destinationAddress = Inet4Address.getByName("8.8.8.8") as Inet4Address)
         assertThrows<IllegalArgumentException> {
             Ipv4Header.reassemble(listOf(Pair(ipv4Header, ByteArray(0)), Pair(ipv4Header5, ByteArray(0))))
         }
