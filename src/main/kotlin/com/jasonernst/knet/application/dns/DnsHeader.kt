@@ -25,7 +25,7 @@ data class DnsHeader(
         const val DNS_HEADER_LENGTH = 12
 
         fun fromStream(stream: ByteBuffer): DnsHeader {
-            if (stream.limit() < DNS_HEADER_LENGTH) {
+            if (stream.remaining() < DNS_HEADER_LENGTH) {
                 throw PacketTooShortException(
                     "Not enough bytes to parse a DNS header, need at least $DNS_HEADER_LENGTH, have ${stream.limit()}",
                 )

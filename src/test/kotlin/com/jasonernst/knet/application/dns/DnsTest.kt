@@ -1,5 +1,6 @@
 package com.jasonernst.knet.application.dns
 
+import com.jasonernst.knet.PacketTooShortException
 import com.jasonernst.knet.application.dns.DnsMessage.Companion.MAX_UDP_SIZE
 import com.jasonernst.packetdumper.stringdumper.StringPacketDumper
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -160,13 +161,18 @@ class DnsTest {
             if (key.isReadable) {
                 val bytesRead = channel.read(responseBuffer)
                 if (bytesRead > 0) {
-                    logger.debug("Received $bytesRead bytes from DNS server: ${channel.remoteAddress}")
-
-                    val dnsResponseHexDump = stringPacketDumper.dumpBufferToString(responseBuffer, 0, responseBuffer.limit())
-                    logger.debug("DNS Response: \n$dnsResponseHexDump")
-                    val parsedMessage = DnsMessage.fromStream(responseBuffer)
-                    logger.debug("PARSED MESSAGE: $parsedMessage")
-                    assertEquals(0u.toUByte(), parsedMessage.header.rcode)
+                    try {
+                        logger.debug("Received $bytesRead bytes from DNS server: ${channel.remoteAddress}")
+                        responseBuffer.limit(bytesRead)
+                        val dnsResponseHexDump = stringPacketDumper.dumpBufferToString(responseBuffer, 0, responseBuffer.limit())
+                        logger.debug("DNS Response: \n$dnsResponseHexDump")
+                        val parsedMessage = DnsMessage.fromStream(responseBuffer)
+                        logger.debug("PARSED MESSAGE: $parsedMessage")
+                        assertEquals(0u.toUByte(), parsedMessage.header.rcode)
+                        responseBuffer.compact()
+                    } catch (e: PacketTooShortException) {
+                        logger.debug("Not enough bytes to parse a DNS message: {}, will try again after another read", e.message)
+                    }
                 } else {
                     logger.debug("No bytes read")
                 }
@@ -235,6 +241,7 @@ class DnsTest {
                 val bytesRead = byteChannel.read(responseBuffer)
                 if (bytesRead > 0) {
                     logger.debug("Received $bytesRead bytes from DNS server: ${channel.remoteAddress}")
+                    responseBuffer.limit(bytesRead)
                     val dump = stringPacketDumper.dumpBufferToString(responseBuffer, 0, responseBuffer.limit())
                     logger.debug("DNS Response: \n$dump")
                     responseBuffer.rewind()

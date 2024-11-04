@@ -25,3 +25,5 @@ Kotlin user-space network stack. This can be used for:
 - [x] ICMP (via https://github.com/compscidr/icmp)
 - [ ] TCP
 - [ ] UDP
+- [ ] DNS
+  - [ ] RFC 1035 (WiP): https://datatracker.ietf.org/doc/html/rfc1035

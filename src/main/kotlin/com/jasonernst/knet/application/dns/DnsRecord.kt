@@ -33,15 +33,8 @@ data class DnsRecord(
             val qClass = stream.short.toUShort()
             logger.debug("GOT qType $qType, qClass $qClass")
             val ttl = stream.int.toUInt()
-            val rdLength = stream.short.toUShort()
-            if (stream.remaining() < rdLength.toInt()) {
-                throw PacketTooShortException(
-                    "Not enough bytes to parse DNSRecord RDATA need at least $rdLength more, have ${stream.remaining()}",
-                )
-            }
-            val rDataBytes = ByteArray(rdLength.toInt())
-            stream.get(rDataBytes)
-            return DnsRecord(qNames, DnsType.fromValue(qType), ttl, DnsRData(rDataBytes))
+            val rData = DnsRData.fromStream(stream, DnsType.fromValue(qType))
+            return DnsRecord(qNames, DnsType.fromValue(qType), ttl, rData)
         }
     }
 
