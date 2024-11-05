@@ -2,6 +2,7 @@ package com.jasonernst.knet
 
 import com.jasonernst.knet.network.ip.IpHeader
 import com.jasonernst.knet.network.nextheader.NextHeader
+import com.jasonernst.knet.transport.TransportHeader
 import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -45,6 +46,10 @@ open class Packet(
         buffer.order(order)
         val ipHeaderBytes = ipHeader.toByteArray()
         buffer.put(ipHeaderBytes)
+
+        if (nextHeaders is TransportHeader) {
+            nextHeaders.checksum = nextHeaders.computeChecksum(ipHeader, payload ?: ByteArray(0))
+        }
         val nextHeaderBytes = nextHeaders?.toByteArray()
         buffer.put(nextHeaderBytes)
         buffer.put(payload)
