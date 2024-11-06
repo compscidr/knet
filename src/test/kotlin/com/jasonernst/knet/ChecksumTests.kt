@@ -16,6 +16,7 @@ import org.junit.jupiter.api.assertThrows
 import org.slf4j.LoggerFactory
 import java.io.FileNotFoundException
 import kotlin.math.min
+import org.junit.jupiter.api.Assertions.assertEquals
 
 class ChecksumTests {
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -118,7 +119,8 @@ class ChecksumTests {
         val payload = ByteArray(remainingPayloadSize)
         stream.get(payload)
 
-        udpHeader.computeChecksum(ipHeader, payload, true)
+        val checksum = udpHeader.computeChecksum(ipHeader, payload, true)
+        assertEquals(0xd9f0.toUShort(), checksum)
     }
 
     @Test fun ipv6TcpBadChecksum() {
