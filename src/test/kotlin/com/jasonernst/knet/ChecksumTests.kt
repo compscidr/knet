@@ -9,6 +9,7 @@ import com.jasonernst.knet.transport.TransportHeader
 import com.jasonernst.knet.transport.tcp.TcpHeader
 import com.jasonernst.knet.transport.udp.UdpHeader
 import com.jasonernst.packetdumper.filedumper.TextFilePacketDumper
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -16,7 +17,6 @@ import org.junit.jupiter.api.assertThrows
 import org.slf4j.LoggerFactory
 import java.io.FileNotFoundException
 import kotlin.math.min
-import org.junit.jupiter.api.Assertions.assertEquals
 
 class ChecksumTests {
     private val logger = LoggerFactory.getLogger(javaClass)
