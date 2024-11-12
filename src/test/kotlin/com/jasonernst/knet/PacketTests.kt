@@ -111,4 +111,33 @@ class PacketTests {
         assertEquals(packet1, packets[0])
         assertEquals(packet2, packets[1])
     }
+
+    @Test fun multiplePacketsTooShortStream() {
+        val filename = "/test_packets/ipv6_multiple_packets.dump"
+        val resource =
+            javaClass.getResource(filename)
+                ?: throw FileNotFoundException("Could not find test dump: $filename")
+        val readBuffer = TextFilePacketDumper.parseFile(resource.file, true)
+        logger.debug("Read buffer length: {}", readBuffer.limit())
+
+        readBuffer.limit(readBuffer.limit() - 1)
+        val packets = Packet.parseStream(readBuffer)
+        assertEquals(1, packets.size)
+    }
+
+    @Test fun badStreamMultiplePackets() {
+        val filename = "/test_packets/ipv6_multiple_packets.dump"
+        val resource =
+            javaClass.getResource(filename)
+                ?: throw FileNotFoundException("Could not find test dump: $filename")
+        val readBuffer = TextFilePacketDumper.parseFile(resource.file, true)
+        logger.debug("Read buffer length: {}", readBuffer.limit())
+
+        val modifiedReadBuffer = ByteBuffer.allocate(readBuffer.limit() + 1)
+        modifiedReadBuffer.put(9)
+        modifiedReadBuffer.put(readBuffer)
+        modifiedReadBuffer.rewind()
+        val packets = Packet.parseStream(modifiedReadBuffer)
+        assertEquals(2, packets.size)
+    }
 }
