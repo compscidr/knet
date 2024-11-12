@@ -73,10 +73,6 @@ open class Packet(
                 val position = stream.position()
                 try {
                     val packet = fromStream(stream)
-                    if (packet.ipHeader == null || packet.nextHeaders == null || packet.payload == null) {
-                        logger.warn("Packet is missing headers or payload, skipping")
-                        continue
-                    }
                     packets.add(packet)
                 } catch (e: IllegalArgumentException) {
                     // don't bother to rewind the stream, just log and continue at position + 1
