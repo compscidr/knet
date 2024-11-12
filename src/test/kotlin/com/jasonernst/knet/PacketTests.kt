@@ -102,7 +102,13 @@ class PacketTests {
         val readBuffer = TextFilePacketDumper.parseFile(resource.file, true)
         logger.debug("Read buffer length: {}", readBuffer.limit())
 
-        Packet.fromStream(readBuffer)
-        Packet.fromStream(readBuffer)
+        val packet1 = Packet.fromStream(readBuffer)
+        val packet2 = Packet.fromStream(readBuffer)
+
+        readBuffer.rewind()
+        val packets = Packet.parseStream(readBuffer)
+        assertEquals(2, packets.size)
+        assertEquals(packet1, packets[0])
+        assertEquals(packet2, packets[1])
     }
 }

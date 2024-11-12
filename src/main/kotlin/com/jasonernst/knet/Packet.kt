@@ -22,6 +22,13 @@ open class Packet(
     companion object {
         private val logger = LoggerFactory.getLogger(javaClass)
 
+        /**
+         * Parses a single packet from the stream. This will parse the IP header, the next header and the payload. If
+         * the stream is too short to fully parse the packet, a [PacketTooShortException] will be thrown. The caller
+         * is responsible for catching this exception and handling it appropriately. (it suggested that the caller
+         * preserves the position before calling this function, and upon catching the exception, resets the position,
+         * reads more data into the buffer, and tries again).
+         */
         fun fromStream(stream: ByteBuffer): Packet {
             val ipHeader = IpHeader.fromStream(stream)
             val nextHeaderLimit = ipHeader.getTotalLength() - ipHeader.getHeaderLength()
@@ -35,6 +42,56 @@ open class Packet(
             val payload = ByteArray(expectedRemaining)
             stream.get(payload)
             return Packet(ipHeader, nextHeader, payload)
+        }
+
+        /**
+         * This function will parse all packets in the stream. If the final packet is a partial packet, it will
+         * be left in the stream for the next call to this function. The position of the stream will be set to just
+         * after the partial packet, and the stream will be compacted so all of the fully parsed packets are removed
+         * from the stream. The stream is ready to be written to again after this function is called.
+         *
+         * If a packet is really malformed, the stream will advance one byte at a time and try again to parse the
+         * stream until it finds an acceptable packet again.
+         *
+         * The packets will be either IPv4 or Ipv6 headers, followed by NextHeader(s) which are typically
+         * TCP, UDP, ICMP, etc. This is followed by the optional payload.
+         *
+         * For TCP packets, we need to make a request on behalf of the client on a protected TCP socket.
+         * We then need to listen to the return traffic and send it back to the client, and ensure that
+         * the sequence numbers are maintained etc.
+         *
+         * For UDP packets, we can just send them to the internet and listen for the return traffic and
+         * then just send it back to the client.
+         *
+         * For ICMP, we need to use an ICMP socket (https://github.com/compscidr/icmp) to send the
+         * request and listen for the return traffic. We then return the ICMP result to the client. This
+         * may be unreachable, time exceeded, etc, or just a successful ping response.
+         */
+        fun parseStream(stream: ByteBuffer): List<Packet> {
+            val packets = mutableListOf<Packet>()
+            while (stream.hasRemaining()) {
+                val position = stream.position()
+                try {
+                    val packet = fromStream(stream)
+                    if (packet.ipHeader == null || packet.nextHeaders == null || packet.payload == null) {
+                        logger.warn("Packet is missing headers or payload, skipping")
+                        continue
+                    }
+                    packets.add(packet)
+                } catch (e: IllegalArgumentException) {
+                    // don't bother to rewind the stream, just log and continue at position + 1
+                    logger.error("Error parsing stream: ", e)
+                    stream.position(position + 1)
+                } catch (e: PacketTooShortException) {
+                    logger.warn("Packet too short to parse, trying again when more data arrives: {}", e.message)
+                    // logger.debug("POSITION: {} LIMIT: {}, RESETTING TO START: {}", stream.position(), stream.limit(), position)
+                    // rewind the stream to before we tried parsing so we can try again later
+                    stream.position(position)
+                    break
+                }
+            }
+            stream.compact()
+            return packets
         }
     }
 
