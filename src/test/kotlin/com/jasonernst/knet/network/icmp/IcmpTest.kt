@@ -15,6 +15,7 @@ import com.jasonernst.knet.network.nextheader.IcmpNextHeaderWrapper
 import com.jasonernst.knet.network.nextheader.NextHeader
 import com.jasonernst.knet.transport.tcp.TcpHeader
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.net.Inet4Address
@@ -110,5 +111,45 @@ class IcmpTest {
         assertTrue(parsed.nextHeaders is IcmpNextHeaderWrapper)
         val icmp = (parsed.nextHeaders as IcmpNextHeaderWrapper).icmpHeader
         assertTrue(icmp is IcmpV6DestinationUnreachablePacket)
+    }
+
+    @Test fun icmpEcho() {
+        val packet =
+            IcmpFactory.createIcmpEcho(
+                false,
+                1u,
+                2u,
+                InetAddress.getByName("127.0.0.1") as Inet4Address,
+                InetAddress.getByName("127.0.0.1") as Inet4Address,
+                null,
+            )
+        val stream = ByteBuffer.wrap(packet.toByteArray())
+        val parsed = Packet.fromStream(stream)
+        assertTrue(parsed.nextHeaders is IcmpNextHeaderWrapper)
+        val icmp = (parsed.nextHeaders as IcmpNextHeaderWrapper).icmpHeader
+        assertTrue(icmp is IcmpV4EchoPacket)
+        val icmpEcho = icmp as IcmpV4EchoPacket
+        assertEquals(1u, icmpEcho.id.toUInt())
+        assertEquals(2u, icmpEcho.sequence.toUInt())
+        assertFalse(icmpEcho.isReply)
+
+        val packet2 =
+            IcmpFactory.createIcmpEcho(
+                true,
+                4u,
+                5u,
+                InetAddress.getByName("::1") as Inet6Address,
+                InetAddress.getByName("::1") as Inet6Address,
+                packet,
+            )
+        val stream2 = ByteBuffer.wrap(packet2.toByteArray())
+        val parsed2 = Packet.fromStream(stream2)
+        assertTrue(parsed2.nextHeaders is IcmpNextHeaderWrapper)
+        val icmp2 = (parsed2.nextHeaders as IcmpNextHeaderWrapper).icmpHeader
+        assertTrue(icmp2 is IcmpV6EchoPacket)
+        val icmpEcho2 = icmp2 as IcmpV6EchoPacket
+        assertEquals(5u, icmpEcho2.id.toUInt())
+        assertEquals(4u, icmpEcho2.sequence.toUInt())
+        assertTrue(icmpEcho2.isReply)
     }
 }
