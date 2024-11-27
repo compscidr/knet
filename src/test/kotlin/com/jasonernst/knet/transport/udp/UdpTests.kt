@@ -14,6 +14,14 @@ class UdpTests {
         assertEquals(udpHeader, parsedHeader)
     }
 
+    @Test fun udpWithPayloadTest() {
+        val payload = "test".toByteArray()
+        val udpHeader = UdpHeader(totalLength = (UdpHeader.UDP_HEADER_LENGTH + payload.size.toUShort()).toUShort())
+        val stream = ByteBuffer.wrap(udpHeader.toByteArray())
+        val parsedHeader = UdpHeader.fromStream(stream)
+        assertEquals(udpHeader, parsedHeader)
+    }
+
     @Test fun tooShort() {
         val udpHeader = UdpHeader()
         val stream = ByteBuffer.wrap(udpHeader.toByteArray())
