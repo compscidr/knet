@@ -5,7 +5,7 @@ kotlin = "2.0.21"
 kotlinter = "5.0.1"
 logback-classic = "1.5.12"
 mockk = "1.13.13"
-packetdumper = "0.0.10"
+packetdumper = "0.0.11"
 slf4j = "2.0.16"
 
 [libraries]
