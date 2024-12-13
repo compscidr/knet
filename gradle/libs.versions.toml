@@ -1,7 +1,7 @@
 [versions]
 icmp = "1.0.0"
 jupiter = "5.11.3"
-kotlin = "2.0.21"
+kotlin = "2.1.0"
 kotlinter = "5.0.1"
 logback-classic = "1.5.12"
 mockk = "1.13.13"
