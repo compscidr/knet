@@ -4,6 +4,7 @@ import com.jasonernst.knet.PacketTooShortException
 import com.jasonernst.knet.network.ip.v4.Ipv4Header
 import com.jasonernst.knet.network.ip.v4.Ipv4Header.Companion.IP4_MIN_HEADER_LENGTH
 import com.jasonernst.knet.network.ip.v6.Ipv6Header
+import com.jasonernst.packetdumper.stringdumper.StringPacketDumper
 import org.slf4j.LoggerFactory
 import java.net.Inet4Address
 import java.net.Inet6Address
@@ -17,6 +18,7 @@ import java.nio.ByteOrder
 interface IpHeader {
     companion object {
         private val logger = LoggerFactory.getLogger(IpHeader::class.java)
+        private val stringPacketDumper = StringPacketDumper(logger)
         const val IP4_VERSION: UByte = 4u
         const val IP6_VERSION: UByte = 6u
 
@@ -45,6 +47,13 @@ interface IpHeader {
                     Ipv6Header.fromStream(stream)
                 }
                 else -> {
+                    // rewind the stream so we can dump what got us here
+                    stream.position(start)
+                    // dump the buffer without addresses, and without a dummy header, just purely
+                    // the raw buffer that caused the problem
+                    stringPacketDumper.dumpBuffer(stream, addresses = false, etherType = null)
+                    // advance past where we were so we can try again
+                    stream.position(stream.position() + 1)
                     throw IllegalArgumentException("Unknown packet type: $version")
                 }
             }
