@@ -39,6 +39,16 @@ open class Packet(
                     "Packet too short to obtain entire payload, have ${stream.remaining()}, expecting $expectedRemaining",
                 )
             }
+            if (expectedRemaining < 0) {
+                logger.warn(
+                    "Expected remaining is negative, something is wrong: {} IP total length: {} IP header length: {} next header length: {}",
+                    expectedRemaining,
+                    ipHeader.getTotalLength(),
+                    ipHeader.getHeaderLength(),
+                    nextHeader.getHeaderLength(),
+                )
+                return Packet(ipHeader, nextHeader, ByteArray(0))
+            }
             val payload = ByteArray(expectedRemaining)
             stream.get(payload)
             return Packet(ipHeader, nextHeader, payload)
