@@ -374,39 +374,44 @@ data class TcpHeader(
             ", options=" + options +
             '}'
 
-    fun toString(startingSequenceNumber: Int, startingAcknowledgement: Int): String {
-        val seq = if (sequenceNumber.toInt() > startingSequenceNumber) {
-            sequenceNumber.toInt() - startingSequenceNumber
-        } else {
-            Int.MAX_VALUE - startingSequenceNumber + sequenceNumber.toInt()
-        }
-        val ack = if (acknowledgementNumber.toInt() > startingAcknowledgement) {
-            acknowledgementNumber.toInt() - startingAcknowledgement
-        } else {
-            Int.MAX_VALUE - startingAcknowledgement + acknowledgementNumber.toInt()
-        }
+    fun toString(
+        startingSequenceNumber: Int,
+        startingAcknowledgement: Int,
+    ): String {
+        val seq =
+            if (sequenceNumber.toInt() > startingSequenceNumber) {
+                sequenceNumber.toInt() - startingSequenceNumber
+            } else {
+                Int.MAX_VALUE - startingSequenceNumber + sequenceNumber.toInt()
+            }
+        val ack =
+            if (acknowledgementNumber.toInt() > startingAcknowledgement) {
+                acknowledgementNumber.toInt() - startingAcknowledgement
+            } else {
+                Int.MAX_VALUE - startingAcknowledgement + acknowledgementNumber.toInt()
+            }
 
         return "TcpHeader{" +
-                "sourcePort=" + Integer.toUnsignedString(sourcePort.toInt() and 0xFFFF) +
-                ", destinationPort=" + Integer.toUnsignedString(destinationPort.toInt() and 0xFFFF) +
-                ", sequenceNumber=" + seq +
-                ", acknowledgementNumber=" + ack +
-                ", rawSequenceNumber=" + sequenceNumber +
-                ", rawAcknowledgementNumber=" + acknowledgementNumber +
-                ", dataOffset=" + Integer.toUnsignedString(getDataOffset().toInt()) +
-                ", cwr=" + cwr +
-                ", ece=" + ece +
-                ", urg=" + urg +
-                ", ack=" + ack +
-                ", psh=" + psh +
-                ", rst=" + rst +
-                ", syn=" + syn +
-                ", fin=" + fin +
-                ", windowSize=" + Integer.toUnsignedString(windowSize.toInt() and 0xFFFF) +
-                ", checksum=" + checksum +
-                ", urgentPointer=" + Integer.toUnsignedString(urgentPointer.toInt() and 0xfff) +
-                ", options=" + options +
-                '}'
+            "sourcePort=" + Integer.toUnsignedString(sourcePort.toInt() and 0xFFFF) +
+            ", destinationPort=" + Integer.toUnsignedString(destinationPort.toInt() and 0xFFFF) +
+            ", sequenceNumber=" + seq +
+            ", acknowledgementNumber=" + ack +
+            ", rawSequenceNumber=" + sequenceNumber +
+            ", rawAcknowledgementNumber=" + acknowledgementNumber +
+            ", dataOffset=" + Integer.toUnsignedString(getDataOffset().toInt()) +
+            ", cwr=" + cwr +
+            ", ece=" + ece +
+            ", urg=" + urg +
+            ", ack=" + ack +
+            ", psh=" + psh +
+            ", rst=" + rst +
+            ", syn=" + syn +
+            ", fin=" + fin +
+            ", windowSize=" + Integer.toUnsignedString(windowSize.toInt() and 0xFFFF) +
+            ", checksum=" + checksum +
+            ", urgentPointer=" + Integer.toUnsignedString(urgentPointer.toInt() and 0xfff) +
+            ", options=" + options +
+            '}'
     }
 
     /*
