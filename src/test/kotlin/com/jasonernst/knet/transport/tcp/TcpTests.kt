@@ -72,4 +72,13 @@ class TcpTests {
         val parsedHeader = TcpHeader.fromStream(stream)
         assertEquals(parsedHeader, tcpHeader)
     }
+
+    @Test fun toStringWithSequenceAndAck() {
+        val tcpHeader = TcpHeader(sequenceNumber = 1000u, acknowledgementNumber = 2000u)
+
+        val headerString = tcpHeader.toString(startingSequenceNumber = 10u, startingAcknowledgement = 1500u)
+        println(headerString)
+        assertTrue(headerString.contains("sequenceNumber=990"))
+        assertTrue(headerString.contains("acknowledgementNumber=500"))
+    }
 }
