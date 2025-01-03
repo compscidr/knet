@@ -100,7 +100,7 @@ data class Ipv6Header(
                     stream,
                     IpType.fromValue(protocol),
                 )
-            logger.debug("Done parsing extension headers")
+            // logger.debug("Done parsing extension headers")
 
             return Ipv6Header(
                 ipVersion,
