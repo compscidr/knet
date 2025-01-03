@@ -355,10 +355,10 @@ data class TcpHeader(
 
     override fun toString(): String =
         "TcpHeader{" +
-            "sourcePort=" + Integer.toUnsignedString(sourcePort.toInt() and 0xFFFF) +
-            ", destinationPort=" + Integer.toUnsignedString(destinationPort.toInt() and 0xFFFF) +
-            ", sequenceNumber=" + sequenceNumber +
-            ", acknowledgementNumber=" + acknowledgementNumber +
+            "srcPort=" + Integer.toUnsignedString(sourcePort.toInt() and 0xFFFF) +
+            ", dstPort=" + Integer.toUnsignedString(destinationPort.toInt() and 0xFFFF) +
+            ", seq=" + sequenceNumber +
+            ", ack=" + acknowledgementNumber +
             ", dataOffset=" + Integer.toUnsignedString(getDataOffset().toInt()) +
             ", cwr=" + cwr +
             ", ece=" + ece +
@@ -379,25 +379,27 @@ data class TcpHeader(
         startingAcknowledgement: UInt,
     ): String {
         val seq =
-            if (sequenceNumber > startingSequenceNumber) {
+            if (sequenceNumber >= startingSequenceNumber) {
                 sequenceNumber - startingSequenceNumber
             } else {
                 UInt.MAX_VALUE - startingSequenceNumber + sequenceNumber
             }
         val ack =
-            if (acknowledgementNumber > startingAcknowledgement) {
+            if (acknowledgementNumber >= startingAcknowledgement) {
                 acknowledgementNumber - startingAcknowledgement
             } else {
                 UInt.MAX_VALUE - startingAcknowledgement + acknowledgementNumber
             }
 
         return "TcpHeader{" +
-            "sourcePort=" + Integer.toUnsignedString(sourcePort.toInt() and 0xFFFF) +
-            ", destinationPort=" + Integer.toUnsignedString(destinationPort.toInt() and 0xFFFF) +
-            ", sequenceNumber=" + seq +
-            ", acknowledgementNumber=" + ack +
-            ", rawSequenceNumber=" + sequenceNumber +
-            ", rawAcknowledgementNumber=" + acknowledgementNumber +
+            "srcPort=" + Integer.toUnsignedString(sourcePort.toInt() and 0xFFFF) +
+            ", dstPort=" + Integer.toUnsignedString(destinationPort.toInt() and 0xFFFF) +
+            ", seq=" + seq +
+            ", ack=" + ack +
+            ", rawSeq=" + sequenceNumber +
+            ", rawAck=" + acknowledgementNumber +
+            ", rawStartSeq=" + startingSequenceNumber +
+            ", rawStartAck=" + startingAcknowledgement +
             ", dataOffset=" + Integer.toUnsignedString(getDataOffset().toInt()) +
             ", cwr=" + cwr +
             ", ece=" + ece +

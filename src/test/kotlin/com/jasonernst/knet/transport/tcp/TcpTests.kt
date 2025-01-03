@@ -76,9 +76,25 @@ class TcpTests {
     @Test fun toStringWithSequenceAndAck() {
         val tcpHeader = TcpHeader(sequenceNumber = 1000u, acknowledgementNumber = 2000u)
 
+        // ensure the sequence is correct in the good case without wraparound
         val headerString = tcpHeader.toString(startingSequenceNumber = 10u, startingAcknowledgement = 1500u)
         println(headerString)
-        assertTrue(headerString.contains("sequenceNumber=990"))
-        assertTrue(headerString.contains("acknowledgementNumber=500"))
+        assertTrue(headerString.contains("seq=990"))
+        assertTrue(headerString.contains("ack=500"))
+
+        // make sure when we have the same starting seq and ack to the header, we get 0s
+        val headerString2 = tcpHeader.toString(startingSequenceNumber = 1000u, startingAcknowledgement = 2000u)
+        println(headerString2)
+        assertTrue(headerString2.contains("seq=0"))
+        assertTrue(headerString2.contains("ack=0"))
+
+        // make sure the wraparound case works
+        val headerString3 = tcpHeader.toString(startingSequenceNumber = 1001u, startingAcknowledgement = 2002u)
+        println(headerString3)
+        val expectedSeq = UInt.MAX_VALUE - 1001u + tcpHeader.sequenceNumber
+        println(expectedSeq)
+        assertTrue(headerString3.contains("seq=$expectedSeq"))
+        val expectedAck = UInt.MAX_VALUE - 2002u + tcpHeader.acknowledgementNumber
+        assertTrue(headerString3.contains("ack=$expectedAck"))
     }
 }
