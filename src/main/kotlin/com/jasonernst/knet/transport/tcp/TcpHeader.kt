@@ -375,20 +375,20 @@ data class TcpHeader(
             '}'
 
     fun toString(
-        startingSequenceNumber: Int,
-        startingAcknowledgement: Int,
+        startingSequenceNumber: UInt,
+        startingAcknowledgement: UInt,
     ): String {
         val seq =
-            if (sequenceNumber.toInt() > startingSequenceNumber) {
-                sequenceNumber.toInt() - startingSequenceNumber
+            if (sequenceNumber > startingSequenceNumber) {
+                sequenceNumber - startingSequenceNumber
             } else {
-                Int.MAX_VALUE - startingSequenceNumber + sequenceNumber.toInt()
+                UInt.MAX_VALUE - startingSequenceNumber + sequenceNumber
             }
         val ack =
-            if (acknowledgementNumber.toInt() > startingAcknowledgement) {
-                acknowledgementNumber.toInt() - startingAcknowledgement
+            if (acknowledgementNumber > startingAcknowledgement) {
+                acknowledgementNumber - startingAcknowledgement
             } else {
-                Int.MAX_VALUE - startingAcknowledgement + acknowledgementNumber.toInt()
+                UInt.MAX_VALUE - startingAcknowledgement + acknowledgementNumber
             }
 
         return "TcpHeader{" +
