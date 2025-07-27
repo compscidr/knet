@@ -2,7 +2,7 @@
 icmp = "1.0.0"
 jupiter = "5.11.4"
 kotlin = "2.1.21"
-kotlinter = "5.1.1"
+kotlinter = "5.2.0"
 logback-classic = "1.5.18"
 mockk = "1.14.2"
 packetdumper = "0.0.12"
