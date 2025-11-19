@@ -83,6 +83,7 @@ abstract class Ipv4Option(
                                 ),
                             )
                         }
+
                         Ipv4OptionType.LooseSourceRouting.kind -> {
                             options.add(
                                 Ipv4OptionLooseSourceAndRecordRoute.fromStream(
@@ -93,6 +94,7 @@ abstract class Ipv4Option(
                                 ),
                             )
                         }
+
                         Ipv4OptionType.StrictSourceRouting.kind -> {
                             options.add(
                                 Ipv4OptionStrictSourceAndRecordRoute.fromStream(
@@ -103,6 +105,7 @@ abstract class Ipv4Option(
                                 ),
                             )
                         }
+
                         Ipv4OptionType.RecordRoute.kind -> {
                             options.add(
                                 Ipv4OptionRecordRoute.fromStream(
@@ -113,6 +116,7 @@ abstract class Ipv4Option(
                                 ),
                             )
                         }
+
                         Ipv4OptionType.StreamId.kind -> {
                             options.add(
                                 Ipv4OptionStreamIdentifier.fromStream(
@@ -123,6 +127,7 @@ abstract class Ipv4Option(
                                 ),
                             )
                         }
+
                         Ipv4OptionType.TimeStamp.kind -> {
                             options.add(
                                 Ipv4OptionInternetTimestamp.fromStream(
@@ -133,6 +138,7 @@ abstract class Ipv4Option(
                                 ),
                             )
                         }
+
                         else -> {
                             val data = ByteArray(length.toInt() - 2)
                             stream.get(data)

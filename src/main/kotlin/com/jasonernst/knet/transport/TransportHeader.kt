@@ -72,9 +72,11 @@ interface TransportHeader : NextHeader {
             is TcpHeader -> {
                 pseudoHeader.putShort(pseudoHeaderTransportStart + TcpHeader.CHECKSUM_OFFSET.toInt(), 0)
             }
+
             is UdpHeader -> {
                 pseudoHeader.putShort(pseudoHeaderTransportStart + UdpHeader.CHECKSUM_OFFSET.toInt(), 0)
             }
+
             else -> {
                 throw IllegalArgumentException("Unknown transport header type")
             }
