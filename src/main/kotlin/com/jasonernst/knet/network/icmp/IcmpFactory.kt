@@ -50,8 +50,14 @@ object IcmpFactory {
     ): Packet {
         val protocol =
             when (packet.ipHeader) {
-                is Ipv4Header -> IpType.ICMP
-                is Ipv6Header -> IpType.IPV6_ICMP
+                is Ipv4Header -> {
+                    IpType.ICMP
+                }
+
+                is Ipv6Header -> {
+                    IpType.IPV6_ICMP
+                }
+
                 else -> {
                     val className = if (packet.ipHeader == null) "null" else packet.ipHeader::class.toString()
                     throw PacketHeaderException("Unknown IP header type: $className")
@@ -88,6 +94,7 @@ object IcmpFactory {
                 is Ipv4Header -> {
                     IcmpV4DestinationUnreachablePacket(code as IcmpV4DestinationUnreachableCodes, 0u, modifiedOriginalRequestBuffer.array())
                 }
+
                 is Ipv6Header -> {
                     IcmpV6DestinationUnreachablePacket(
                         sourceAddress as Inet6Address,
@@ -97,6 +104,7 @@ object IcmpFactory {
                         modifiedOriginalRequestBuffer.array(),
                     )
                 }
+
                 else -> {
                     throw PacketHeaderException("Unknown IP header type: ${packet.ipHeader::class}")
                 }
@@ -142,6 +150,7 @@ object IcmpFactory {
                 is Inet4Address -> {
                     IcmpV4EchoPacket(0u, sequence, identifier, isReply, packet?.toByteArray() ?: ByteArray(0))
                 }
+
                 is Inet6Address -> {
                     IcmpV6EchoPacket(
                         sourceAddress,
@@ -153,6 +162,7 @@ object IcmpFactory {
                         packet?.toByteArray() ?: ByteArray(0),
                     )
                 }
+
                 else -> {
                     throw PacketHeaderException("Unknown IP header type: ${sourceAddress::class}")
                 }

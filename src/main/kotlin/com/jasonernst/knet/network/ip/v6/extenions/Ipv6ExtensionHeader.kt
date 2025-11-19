@@ -139,21 +139,27 @@ open class Ipv6ExtensionHeader(
                     IpType.HOPOPT -> {
                         extensionList.add(Ipv6HopByHopOptions.fromStream(stream, nextHeader, length))
                     }
+
                     IpType.IPV6_FRAG -> {
                         extensionList.add(Ipv6Fragment.fromStream(stream, nextHeader))
                     }
+
                     IpType.IPV6_OPTS -> {
                         extensionList.add(Ipv6DestinationOptions.fromStream(stream, nextHeader, length))
                     }
+
                     IpType.IPV6_ROUTE -> {
                         extensionList.add(Ipv6Routing.Companion.fromStream(stream, nextHeader, length))
                     }
+
                     IpType.AH -> {
                         extensionList.add(Ipv6Authentication.fromStream(stream, nextHeader, length))
                     }
+
                     IpType.ESP -> {
                         extensionList.add(Ipv6EncapsulatingSecurityPayload.fromStream(stream, nextHeader, length))
                     }
+
                     else -> {
                         // can't really get here, but kotlin requires an else case
                         throw IllegalArgumentException("Unsupported IPv6 extension header: $currentHeader")

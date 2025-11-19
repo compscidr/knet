@@ -43,9 +43,11 @@ interface IpHeader {
                 IP4_VERSION -> {
                     Ipv4Header.fromStream(stream)
                 }
+
                 IP6_VERSION -> {
                     Ipv6Header.fromStream(stream)
                 }
+
                 else -> {
                     // rewind the stream so we can dump what got us here
                     stream.position(start)
@@ -83,6 +85,7 @@ interface IpHeader {
                         totalLength = totalLength,
                     )
                 }
+
                 is Inet6Address -> {
                     destinationAddress as Inet6Address
                     Ipv6Header(
@@ -92,6 +95,7 @@ interface IpHeader {
                         payloadLength = payloadSize.toUShort(),
                     )
                 }
+
                 else -> {
                     // we should never get here because there are only the above two classes
                     // however linting forces us to make this exhaustive. Its not easily
