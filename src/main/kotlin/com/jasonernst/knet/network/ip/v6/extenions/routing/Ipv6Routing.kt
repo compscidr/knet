@@ -113,20 +113,27 @@ open class Ipv6Routing(
                         throw FatalRoutingException("SourceRouteDeprecated is deprecated")
                     }
                 }
+
                 Ipv6RoutingType.NimrodDeprecated -> {
                     // https://www.rfc-editor.org/rfc/rfc2775.html
                     // The Nimrod Routing Header is deprecated and MUST NOT be used.
                     throw FatalRoutingException("NimrodDeprecated is deprecated")
                 }
-                Ipv6RoutingType.Type2RoutingHeader -> return Ipv6Type2Routing.fromStream(
-                    nextHeader,
-                    length,
-                    routingType,
-                    segmentsLeft,
-                    stream,
-                )
+
+                Ipv6RoutingType.Type2RoutingHeader -> {
+                    return Ipv6Type2Routing.fromStream(
+                        nextHeader,
+                        length,
+                        routingType,
+                        segmentsLeft,
+                        stream,
+                    )
+                }
+
                 // TODO: there's 6 more routing types to implement here
-                else -> throw IllegalArgumentException("Unsupported routing type: $routingType")
+                else -> {
+                    throw IllegalArgumentException("Unsupported routing type: $routingType")
+                }
             }
         }
     }
