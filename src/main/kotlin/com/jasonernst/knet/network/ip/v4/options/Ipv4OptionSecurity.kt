@@ -40,7 +40,7 @@ data class Ipv4OptionSecurity(
     val tcc: UInt = 0u, // even though we 32 bits, this field is actually 24...whyyyyy.
 ) : Ipv4Option(isCopied, optionClass, type, size) {
     companion object {
-        private val logger = LoggerFactory.getLogger(javaClass)
+        private val logger = LoggerFactory.getLogger(Ipv4OptionSecurity::class.java)
         val OPTION_SIZE: UByte = 11u
 
         fun fromStream(

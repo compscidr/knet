@@ -20,7 +20,7 @@ open class Packet(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     companion object {
-        private val logger = LoggerFactory.getLogger(javaClass)
+        private val logger = LoggerFactory.getLogger(Packet::class.java)
 
         /**
          * Parses a single packet from the stream. This will parse the IP header, the next header and the payload. If
