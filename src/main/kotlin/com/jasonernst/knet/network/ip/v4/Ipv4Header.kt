@@ -374,7 +374,7 @@ data class Ipv4Header(
                     options = newOptions,
                 )
             logger.debug("payload len:${newHeader.getPayloadLength()}")
-            val newPayload = payload.copyOfRange(payloadPosition.toInt(), payloadPosition.toInt() + payloadPerPacket.toInt())
+            val newPayload = payload.copyOfRange(payloadPosition.toInt(), payloadPosition.toInt() + payloadPerPacket)
             packetList.add(Pair(newHeader, newPayload))
             payloadPosition += payloadPerPacket.toUInt()
             if (payloadPosition + payloadPerPacket.toUInt() > payload.size.toUInt()) {

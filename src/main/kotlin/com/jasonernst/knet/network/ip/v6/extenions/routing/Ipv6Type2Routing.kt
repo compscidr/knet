@@ -115,7 +115,7 @@ data class Ipv6Type2Routing(
     }
 
     override fun toByteArray(order: ByteOrder): ByteArray {
-        val buffer = ByteBuffer.allocate(MIN_LENGTH_BYTES.toInt() + (length * 8u).toInt())
+        val buffer = ByteBuffer.allocate(MIN_LENGTH_BYTES + (length * 8u).toInt())
         buffer.order(order)
         buffer.put(super.toByteArray(order))
         buffer.put(homeAddress)

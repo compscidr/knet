@@ -143,7 +143,7 @@ open class Ipv6Routing(
      * handled by the subclass.
      */
     override fun toByteArray(order: ByteOrder): ByteArray {
-        val buffer = ByteBuffer.allocate(MIN_LENGTH_BYTES.toInt())
+        val buffer = ByteBuffer.allocate(MIN_LENGTH_BYTES)
         buffer.order(order)
         buffer.put(super.toByteArray(order))
         buffer.put(routingType.kind.toByte())
