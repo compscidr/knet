@@ -6,7 +6,7 @@ kotlinter = "5.7.0"
 logback-classic = "1.6.3"
 mockk = "1.14.11"
 packetdumper = "0.0.12"
-slf4j = "2.0.18"
+slf4j = "2.0.19"
 
 [libraries]
 icmp_common = { module = "com.jasonernst.icmp:icmp_common", version.ref = "icmp" }
